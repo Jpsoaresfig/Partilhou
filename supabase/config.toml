@@ -1,0 +1,47 @@
+# Configuracao do projeto Supabase (CLI local). Em producao, espelhe as opcoes
+# relevantes no painel (Project Settings).
+project_id = "partilhou"
+
+[api]
+enabled = true
+port = 54321
+# IMPORTANTE: expomos o schema privado `app` ao PostgREST para que o backend
+# possa chamar as funcoes financeiras via RPC (db: { schema: "app" }).
+# A seguranca NAO depende de esconder o schema: em 0000 revogamos USAGE de
+# anon/authenticated, entao apenas service_role (usado so no servidor) consegue
+# executar essas funcoes. Em producao: adicione "app" em
+# Project Settings > API > Exposed schemas.
+schemas = ["public", "app"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[db.pooler]
+enabled = true
+default_pool_size = 20
+max_client_conn = 100
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/**"]
+jwt_expiry = 900            # access token: 15 min (curto, conforme requisito)
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false  # em producao: true (confirmacao por e-mail)
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+
+[edge_runtime]
+enabled = true

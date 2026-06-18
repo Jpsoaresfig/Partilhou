@@ -56,6 +56,12 @@ p { margin: 0 0 0.75rem; }
   font-size: 0.92rem; font-weight: 600; background: none; border: none; cursor: pointer;
 }
 .nav-links a:hover { color: var(--text); background: var(--surface-2); }
+/* Botao de menu (so aparece no mobile) */
+.nav-toggle {
+  display: none; margin-left: auto;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-size: 1.2rem; line-height: 1; padding: 0.45rem 0.65rem; cursor: pointer;
+}
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -80,6 +86,11 @@ p { margin: 0 0 0.75rem; }
 }
 .grid { display: grid; gap: 1rem; }
 .grid-products { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+
+/* Layouts de duas colunas (viram 1 coluna no mobile — ver media query) */
+.product-grid { display: grid; gap: 1.5rem; grid-template-columns: 1.3fr 1fr; }
+.cols-2 { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
+.cols-2-wide { display: grid; gap: 1rem; grid-template-columns: 1fr 1.4fr; }
 
 .product-card { overflow: hidden; padding: 0; display: flex; flex-direction: column; transition: 0.15s; }
 .product-card:hover { border-color: var(--primary); transform: translateY(-2px); }
@@ -148,3 +159,52 @@ table.list th, table.list td { text-align: left; padding: 0.7rem 0.6rem; border-
 table.list th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; }
 
 .empty { text-align: center; color: var(--muted); padding: 3rem 1rem; }
+
+/* ============================================================ */
+/* Responsivo / Mobile                                          */
+/* ============================================================ */
+@media (max-width: 760px) {
+  .container { padding: 0 1rem; }
+
+  /* Layouts de 2 colunas passam a 1 coluna */
+  .product-grid,
+  .cols-2,
+  .cols-2-wide { grid-template-columns: 1fr; }
+
+  /* Hero mais compacto */
+  .hero { padding: 2.25rem 0 1.25rem; }
+  .hero .lead { font-size: 1.02rem; }
+
+  /* Inputs a 16px evitam o zoom automatico do iOS ao focar */
+  .input, .textarea, select { font-size: 16px; }
+
+  /* Tabelas com rolagem horizontal em vez de transbordar */
+  table.list {
+    display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  table.list thead, table.list tbody { display: table; width: 100%; min-width: 460px; }
+  table.list th, table.list td { white-space: nowrap; }
+
+  /* ---- Navbar: menu recolhivel ---- */
+  .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
+  .nav-links {
+    position: absolute; top: 62px; left: 0; right: 0; margin-left: 0;
+    flex-direction: column; align-items: stretch; gap: 0.1rem;
+    background: rgba(15, 17, 21, 0.98); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border); box-shadow: var(--shadow);
+    padding: 0.5rem 1rem 0.9rem;
+  }
+  .nav-links.closed { display: none; }
+  .nav-links a, .nav-links button { width: 100%; text-align: left; padding: 0.75rem 0.6rem; font-size: 1rem; }
+  .nav-links .btn { justify-content: center; margin-top: 0.25rem; }
+
+  /* Botoes em coluna ficam full-width onde fizer sentido */
+  .hero .row .btn { flex: 1; }
+}
+
+/* Telas muito pequenas */
+@media (max-width: 380px) {
+  .grid-products { grid-template-columns: 1fr; }
+  .nav-inner { gap: 0.5rem; }
+  .brand { font-size: 1.05rem; }
+}

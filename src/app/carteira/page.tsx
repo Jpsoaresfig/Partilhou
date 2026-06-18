@@ -37,7 +37,7 @@ export default async function CarteiraPage() {
     <main className="container mt-3 mb-3" style={{ maxWidth: 860 }}>
       <h1>Carteira</h1>
 
-      <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+      <div className="cols-2">
         <div className="card">
           <span className="muted small">Saldo pendente (em escrow)</span>
           <div className="price mt-1">{formatBRL(pending)}</div>
@@ -50,7 +50,7 @@ export default async function CarteiraPage() {
         </div>
       </div>
 
-      <div className="grid mt-2" style={{ gridTemplateColumns: "1fr 1.4fr", gap: "1rem" }}>
+      <div className="cols-2-wide mt-2">
         <div className="card">
           <h3>Sacar</h3>
           <WithdrawForm availableCents={available} />

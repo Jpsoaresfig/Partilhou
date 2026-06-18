@@ -43,7 +43,7 @@ export default async function OrderPage({
         <div className="alert alert-error">O pagamento nao foi concluido. Tente novamente.</div>
       )}
 
-      <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+      <div className="cols-2">
         <div className="card">
           <h3>Status</h3>
           <div className="stack" style={{ gap: "0.5rem" }}>

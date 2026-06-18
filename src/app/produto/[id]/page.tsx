@@ -52,7 +52,7 @@ export default async function ProductPage({
 
   return (
     <main className="container mt-3 mb-3">
-      <div className="grid" style={{ gridTemplateColumns: "1.3fr 1fr", gap: "1.5rem" }}>
+      <div className="product-grid">
         {/* Galeria */}
         <div>
           <div

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -8,6 +8,12 @@ export const metadata: Metadata = {
   title: "Partilhou — Marketplace C2C com afiliacao",
   description:
     "Compre, venda e indique produtos usados com pagamento garantido (escrow).",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0f1115",
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

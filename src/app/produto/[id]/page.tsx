@@ -10,6 +10,8 @@ import {
 } from "@/lib/money";
 import { describeAttributes } from "@/lib/categories";
 import ProductActions from "@/components/ProductActions";
+import Reputation from "@/components/Reputation";
+import ChatButton from "@/components/ChatButton";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +45,14 @@ export default async function ProductPage({
     .from("profiles")
     .select("full_name")
     .eq("id", product.seller_id)
+    .maybeSingle();
+
+  // Reputacao do vendedor (publica) — exibida como confiabilidade.
+  const { data: sellerRep } = await supabase
+    .from("profile_reputation")
+    .select("avg_score, ratings_count")
+    .eq("ratee_id", product.seller_id)
+    .eq("role", "vendedor")
     .maybeSingle();
 
   const images: string[] = product.images ?? [];
@@ -158,12 +168,15 @@ export default async function ProductPage({
               </div>
             )}
 
-            <p className="muted small">
+            <p className="muted small" style={{ marginBottom: 4 }}>
               Vendido por{" "}
               <Link href={`/loja/${product.seller_id}`} style={{ color: "var(--primary)" }}>
                 {seller?.full_name ?? "Vendedor"}
               </Link>
             </p>
+            <div className="small mb-2">
+              <Reputation rep={sellerRep ?? null} label="Confiabilidade" size="sm" />
+            </div>
 
             {refPrice ? (
               refPrice.bps > 0 && (
@@ -216,6 +229,11 @@ export default async function ProductPage({
                   platformFeeBps: product.platform_fee_bps,
                 }}
               />
+              {user && !isSeller && (
+                <div className="mt-2">
+                  <ChatButton productId={product.id} />
+                </div>
+              )}
             </div>
           </div>
 

@@ -39,6 +39,7 @@ export default function Navbar({ authed, isAdmin, unread = 0 }: { authed: boolea
             <>
               <Link href="/vender" onClick={close}>Vender</Link>
               <Link href="/painel" onClick={close}>Painel</Link>
+              <Link href="/chat" onClick={close}>Conversas</Link>
               <Link href="/carteira" onClick={close}>Carteira</Link>
               <Link href="/notificacoes" onClick={close} className="nav-notif">
                 Notificacoes

@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatBRL } from "@/lib/money";
 import StatusBadge from "@/components/StatusBadge";
 import OrderActions from "@/components/OrderActions";
+import RatingForm, { type RatingTarget } from "@/components/RatingForm";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,26 @@ export default async function OrderPage({
     role === "seller" ? order.seller_net_cents : role === "affiliate" ? order.commission_cents : order.amount_total_cents;
   const myLabel =
     role === "seller" ? "Voce recebe (liquido)" : role === "affiliate" ? "Sua comissao" : "Voce pagou";
+
+  // Avaliacao: so o comprador, e so apos o pedido concluido (fundos liberados).
+  const canRate = role === "buyer" && order.funds_state === "liberado";
+  let ratingTargets: RatingTarget[] = [];
+  if (canRate) {
+    const { data: existing } = await supabase
+      .from("ratings")
+      .select("role, score, comment")
+      .eq("order_id", order.id);
+    const byRole = new Map((existing ?? []).map((r) => [r.role as string, r]));
+    ratingTargets = [
+      { role: "vendedor" as const, label: "Avaliar o vendedor" },
+      ...(order.affiliate_id
+        ? [{ role: "afiliado" as const, label: "Avaliar o afiliado" }]
+        : []),
+    ].map((t) => {
+      const ex = byRole.get(t.role);
+      return { ...t, existing: ex ? { score: ex.score, comment: ex.comment } : null };
+    });
+  }
 
   return (
     <main className="container mt-3 mb-3" style={{ maxWidth: 760 }}>
@@ -87,6 +108,17 @@ export default async function OrderPage({
           fundsState={order.funds_state}
         />
       </div>
+
+      {canRate && (
+        <div className="card mt-2">
+          <h3>Avaliacao</h3>
+          <p className="muted small" style={{ marginTop: -4 }}>
+            Pedido concluido. Conte como foi a sua experiencia — isso forma a
+            confiabilidade exibida nos perfis.
+          </p>
+          <RatingForm orderId={order.id} targets={ratingTargets} />
+        </div>
+      )}
     </main>
   );
 }

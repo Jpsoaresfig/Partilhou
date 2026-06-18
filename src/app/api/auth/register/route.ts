@@ -6,6 +6,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ok, fail, handleError, readJson } from "@/lib/http";
 import { registerSchema } from "@/lib/validation";
+import { translateRegisterError } from "@/lib/authErrors";
 
 export async function POST(req: Request) {
   try {
@@ -25,8 +26,9 @@ export async function POST(req: Request) {
     });
 
     if (error) {
-      // Mensagem generica: nao revela se o e-mail ja existe (anti enumeracao).
-      return fail(error.message, 400);
+      // Traduz o erro do Supabase (ingles) para uma mensagem clara em pt-BR.
+      const { message, status } = translateRegisterError(error);
+      return fail(message, status);
     }
 
     return ok(

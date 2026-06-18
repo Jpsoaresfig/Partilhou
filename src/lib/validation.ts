@@ -4,17 +4,35 @@
  */
 import { z } from "zod";
 
+// Campos opcionais de formulario chegam como "" (string vazia) quando em branco.
+// Convertemos "" -> undefined para que o `.optional()` valha e nao dispare o
+// `.min()`. Sem isso, deixar o CPF/telefone em branco quebraria o cadastro.
+const optionalText = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    schema.optional(),
+  );
+
 export const registerSchema = z.object({
-  email: z.string().email("E-mail invalido"),
-  password: z.string().min(8, "Senha deve ter ao menos 8 caracteres").max(72),
-  full_name: z.string().trim().min(2).max(160),
-  document_number: z.string().trim().min(11).max(18).optional(),
-  phone: z.string().trim().max(20).optional(),
+  email: z.string().trim().min(1, "Informe o e-mail").email("E-mail invalido"),
+  password: z
+    .string()
+    .min(8, "A senha deve ter ao menos 8 caracteres")
+    .max(72, "A senha deve ter no maximo 72 caracteres"),
+  full_name: z
+    .string()
+    .trim()
+    .min(2, "Informe seu nome completo")
+    .max(160, "Nome muito longo"),
+  document_number: optionalText(
+    z.string().trim().min(11, "CPF/CNPJ invalido").max(18, "CPF/CNPJ invalido"),
+  ),
+  phone: optionalText(z.string().trim().max(20, "Telefone invalido")),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("E-mail invalido"),
-  password: z.string().min(1, "Senha obrigatoria"),
+  email: z.string().trim().min(1, "Informe o e-mail").email("E-mail invalido"),
+  password: z.string().min(1, "Informe a senha"),
 });
 
 // Categoria (slug) e mapa flexivel de atributos do anuncio. Os valores sao

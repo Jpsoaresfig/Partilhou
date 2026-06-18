@@ -6,6 +6,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ok, fail, handleError, readJson } from "@/lib/http";
 import { loginSchema } from "@/lib/validation";
+import { translateLoginError } from "@/lib/authErrors";
 
 export async function POST(req: Request) {
   try {
@@ -18,7 +19,8 @@ export async function POST(req: Request) {
     });
 
     if (error) {
-      return fail("Credenciais invalidas", 401);
+      const { message, status } = translateLoginError(error);
+      return fail(message, status);
     }
 
     return ok({ user_id: data.user.id, email: data.user.email });

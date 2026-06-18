@@ -3,14 +3,18 @@
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
-const BUCKET = "product-images";
-
 export default function ImageUploader({
   value,
   onChange,
+  bucket = "product-images",
+  max = 12,
+  hint = "Ate 12 imagens. A primeira e a capa.",
 }: {
   value: string[];
   onChange: (urls: string[]) => void;
+  bucket?: string;
+  max?: number;
+  hint?: string;
 }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,17 +35,17 @@ export default function ImageUploader({
       }
 
       const uploaded: string[] = [];
-      for (const file of Array.from(files).slice(0, 12 - value.length)) {
+      for (const file of Array.from(files).slice(0, max - value.length)) {
         const ext = file.name.split(".").pop() ?? "jpg";
         const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage
-          .from(BUCKET)
+          .from(bucket)
           .upload(path, file, { cacheControl: "3600", upsert: false });
         if (upErr) {
           setError(upErr.message);
           continue;
         }
-        const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        const { data } = supabase.storage.from(bucket).getPublicUrl(path);
         uploaded.push(data.publicUrl);
       }
       onChange([...value, ...uploaded]);
@@ -77,13 +81,13 @@ export default function ImageUploader({
             </button>
           </div>
         ))}
-        {value.length < 12 && (
+        {value.length < max && (
           <label className="btn btn-ghost" style={{ width: 84, height: 64, cursor: "pointer" }}>
             {uploading ? "..." : "+ Foto"}
             <input
               type="file"
               accept="image/*"
-              multiple
+              multiple={max > 1}
               hidden
               disabled={uploading}
               onChange={(e) => handleFiles(e.target.files)}
@@ -91,7 +95,7 @@ export default function ImageUploader({
           </label>
         )}
       </div>
-      <span className="muted small">Ate 12 imagens. A primeira e a capa.</span>
+      <span className="muted small">{hint}</span>
     </div>
   );
 }

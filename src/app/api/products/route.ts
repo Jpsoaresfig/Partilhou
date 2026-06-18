@@ -6,7 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { ok, handleError, readJson } from "@/lib/http";
 import { createProductSchema } from "@/lib/validation";
-import { toCents, percentToBps } from "@/lib/money";
+import { productPricingColumns } from "@/lib/products";
 
 export async function GET(req: Request) {
   try {
@@ -41,8 +41,9 @@ export async function POST(req: Request) {
         title: body.title,
         description: body.description,
         images: body.images,
-        amount_total_cents: toCents(body.amount_total),
-        commission_bps: percentToBps(body.commission_percent),
+        category: body.category,
+        attributes: body.attributes,
+        ...productPricingColumns(body),
       })
       .select()
       .single();

@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { computeSplit, formatBRL, toCents, percentToBps } from "@/lib/money";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import ImageUploader from "@/components/ImageUploader";
+import AttributeFields from "@/components/AttributeFields";
+import PricingFields, { EMPTY_PRICING, pricingToBody, type PricingValue } from "@/components/PricingFields";
+import { DEFAULT_CATEGORY, OPCIONAIS_KEY, type ProductAttributes } from "@/lib/categories";
 
 export default function SellForm() {
   const router = useRouter();
@@ -15,8 +17,19 @@ export default function SellForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<string[]>([]);
-  const [amount, setAmount] = useState("");
-  const [commission, setCommission] = useState("15");
+  const [pricing, setPricing] = useState<PricingValue>(EMPTY_PRICING);
+  const [category, setCategory] = useState(DEFAULT_CATEGORY);
+  const [attrs, setAttrs] = useState<Record<string, string>>({});
+  const [opcionais, setOpcionais] = useState<string[]>([]);
+
+  function buildAttributes(): ProductAttributes {
+    const out: ProductAttributes = {};
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v.trim() !== "") out[k] = v.trim();
+    }
+    if (opcionais.length) out[OPCIONAIS_KEY] = opcionais;
+    return out;
+  }
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -30,21 +43,6 @@ export default function SellForm() {
       });
   }, []);
 
-  const sim = useMemo(() => {
-    try {
-      const totalCents = toCents(amount || 0);
-      const commissionBps = percentToBps(commission || 0);
-      if (totalCents <= 0) return null;
-      return {
-        totalCents,
-        withAff: computeSplit({ totalCents, commissionBps, platformFeeBps, hasAffiliate: true }),
-        direct: computeSplit({ totalCents, commissionBps, platformFeeBps, hasAffiliate: false }),
-      };
-    } catch {
-      return null;
-    }
-  }, [amount, commission, platformFeeBps]);
-
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -57,8 +55,9 @@ export default function SellForm() {
           title,
           description,
           images,
-          amount_total: amount,
-          commission_percent: commission,
+          ...pricingToBody(pricing),
+          category,
+          attributes: buildAttributes(),
         }),
       });
       const json = await res.json();
@@ -92,56 +91,27 @@ export default function SellForm() {
             <label>Descricao</label>
             <textarea className="textarea" value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
+          <AttributeFields
+            category={category}
+            attrs={attrs}
+            opcionais={opcionais}
+            onCategory={(slug) => {
+              setCategory(slug);
+              setAttrs({});
+              setOpcionais([]);
+            }}
+            onAttrs={setAttrs}
+            onOpcionais={setOpcionais}
+          />
           <div className="field">
             <label>Imagens</label>
             <ImageUploader value={images} onChange={setImages} />
           </div>
-          <div className="row wrap">
-            <div className="field" style={{ flex: 1, minWidth: 180 }}>
-              <label>Preco (R$)</label>
-              <input
-                className="input"
-                inputMode="decimal"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0,00"
-                required
-              />
-            </div>
-            <div className="field" style={{ flex: 1, minWidth: 180 }}>
-              <label>Comissao do afiliado (%)</label>
-              <input
-                className="input"
-                inputMode="decimal"
-                value={commission}
-                onChange={(e) => setCommission(e.target.value)}
-                placeholder="15"
-              />
-            </div>
-          </div>
+          <PricingFields value={pricing} onChange={setPricing} platformFeeBps={platformFeeBps} />
           <button className="btn btn-primary btn-block" disabled={loading}>
             {loading ? "Publicando..." : "Publicar anuncio"}
           </button>
         </form>
-
-        {sim && (
-          <div className="card">
-            <h3 style={{ marginBottom: "0.75rem" }}>Simulacao</h3>
-            <div className="split-box mb-2">
-              <div className="small muted" style={{ marginBottom: 4 }}>Venda por afiliado</div>
-              <div className="split-line"><span>Voce recebe (liquido)</span><strong>{formatBRL(sim.withAff.sellerNetCents)}</strong></div>
-              <div className="split-line"><span>Afiliado recebe</span><span>{formatBRL(sim.withAff.commissionCents)}</span></div>
-              <div className="split-line"><span>Taxa da plataforma</span><span>{formatBRL(sim.withAff.platformFeeCents)}</span></div>
-              <div className="split-line total"><span>Comprador paga</span><span>{formatBRL(sim.totalCents)}</span></div>
-            </div>
-            <div className="split-box">
-              <div className="small muted" style={{ marginBottom: 4 }}>Venda direta (sem afiliado)</div>
-              <div className="split-line"><span>Voce recebe (liquido)</span><strong>{formatBRL(sim.direct.sellerNetCents)}</strong></div>
-              <div className="split-line"><span>Taxa da plataforma</span><span>{formatBRL(sim.direct.platformFeeCents)}</span></div>
-              <div className="split-line total"><span>Comprador paga</span><span>{formatBRL(sim.totalCents)}</span></div>
-            </div>
-          </div>
-        )}
       </div>
     </main>
   );

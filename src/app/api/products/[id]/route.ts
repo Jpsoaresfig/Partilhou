@@ -7,7 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { ok, fail, handleError, readJson } from "@/lib/http";
 import { updateProductSchema } from "@/lib/validation";
-import { toCents, percentToBps } from "@/lib/money";
+import { productPricingColumns } from "@/lib/products";
 
 export async function GET(
   _req: Request,
@@ -39,14 +39,13 @@ export async function PATCH(
     const { supabase } = await requireUser();
     const body = updateProductSchema.parse(await readJson(req));
 
-    const patch: Record<string, unknown> = {};
+    const patch: Record<string, unknown> = { ...productPricingColumns(body) };
     if (body.title !== undefined) patch.title = body.title;
     if (body.description !== undefined) patch.description = body.description;
     if (body.images !== undefined) patch.images = body.images;
-    if (body.amount_total !== undefined) patch.amount_total_cents = toCents(body.amount_total);
-    if (body.commission_percent !== undefined)
-      patch.commission_bps = percentToBps(body.commission_percent);
     if (body.status !== undefined) patch.status = body.status;
+    if (body.category !== undefined) patch.category = body.category;
+    if (body.attributes !== undefined) patch.attributes = body.attributes;
 
     // RLS so permite o dono atualizar. update sem linha retorna vazio.
     const { data, error } = await supabase

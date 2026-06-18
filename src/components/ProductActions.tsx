@@ -1,7 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import {
+  computeSplit,
+  formatBRL,
+  bpsToPercent,
+  resolveCommissionBps,
+  type CommissionModel,
+  type CommissionTier,
+} from "@/lib/money";
+
+type Pricing = {
+  minPriceCents: number | null;
+  targetPriceCents: number;
+  commissionBps: number;
+  commissionMinBps: number | null;
+  commissionModel: CommissionModel;
+  commissionTiers: CommissionTier[] | null;
+  platformFeeBps: number;
+};
 
 type Shipping = {
   recipient: string;
@@ -31,22 +49,56 @@ export default function ProductActions({
   isSeller,
   affiliateCode,
   buyerName,
+  pricing,
 }: {
   productId: string;
   authed: boolean;
   isSeller: boolean;
   affiliateCode?: string;
   buyerName?: string;
+  pricing: Pricing;
 }) {
   const [busy, setBusy] = useState<"buy" | "promote" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showShipping, setShowShipping] = useState(false);
+  const [showPromote, setShowPromote] = useState(false);
   const [shipping, setShipping] = useState<Shipping>({
     ...EMPTY_SHIPPING,
     recipient: buyerName ?? "",
   });
+
+  const hasRange =
+    pricing.minPriceCents != null && pricing.minPriceCents < pricing.targetPriceCents;
+  // Preco que o afiliado quer praticar (default = preco-alvo / teto).
+  const [promoPrice, setPromoPrice] = useState(
+    (pricing.targetPriceCents / 100).toFixed(2),
+  );
+
+  // Previa da comissao do afiliado para o preco digitado (espelha o banco).
+  const promoPreview = useMemo(() => {
+    const cents = Math.round(Number(promoPrice.replace(",", ".")) * 100);
+    if (!Number.isFinite(cents) || cents <= 0) return null;
+    const floor = pricing.minPriceCents ?? pricing.targetPriceCents;
+    const clamped = Math.max(floor, Math.min(pricing.targetPriceCents, cents));
+    const bps = resolveCommissionBps({
+      saleCents: clamped,
+      targetCents: pricing.targetPriceCents,
+      floorCents: pricing.minPriceCents,
+      commissionBps: pricing.commissionBps,
+      commissionMinBps: pricing.commissionMinBps,
+      model: pricing.commissionModel,
+      tiers: pricing.commissionTiers,
+    });
+    const split = computeSplit({
+      totalCents: clamped,
+      commissionBps: bps,
+      platformFeeBps: pricing.platformFeeBps,
+      hasAffiliate: true,
+    });
+    return { priceCents: clamped, bps, commissionCents: split.commissionCents };
+  }, [promoPrice, pricing]);
 
   if (!authed) {
     return (
@@ -103,14 +155,17 @@ export default function ProductActions({
     }
   }
 
-  async function promote() {
+  async function generateLink(salePrice?: string) {
     setBusy("promote");
     setError(null);
     try {
       const res = await fetch("/api/affiliate/links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product_id: productId }),
+        body: JSON.stringify({
+          product_id: productId,
+          ...(salePrice !== undefined ? { sale_price: salePrice } : {}),
+        }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -242,9 +297,65 @@ export default function ProductActions({
         </div>
       )}
 
-      <button className="btn btn-ghost btn-block" onClick={promote} disabled={busy !== null}>
-        {busy === "promote" ? "Gerando..." : "Promover e ganhar comissao"}
-      </button>
+      {!hasRange ? (
+        <button
+          className="btn btn-ghost btn-block"
+          onClick={() => generateLink()}
+          disabled={busy !== null}
+        >
+          {busy === "promote" ? "Gerando..." : "Promover e ganhar comissao"}
+        </button>
+      ) : !showPromote ? (
+        <button
+          className="btn btn-ghost btn-block"
+          onClick={() => {
+            setError(null);
+            setShowPromote(true);
+          }}
+          disabled={busy !== null}
+        >
+          Promover e escolher meu preco
+        </button>
+      ) : (
+        <div className="split-box stack">
+          <div className="small muted">
+            Escolha por quanto vender (entre {formatBRL(pricing.minPriceCents ?? pricing.targetPriceCents)} e{" "}
+            {formatBRL(pricing.targetPriceCents)}). Quanto mais caro, maior sua comissao.
+          </div>
+          <div className="field" style={{ margin: 0 }}>
+            <label>Seu preco de venda (R$)</label>
+            <input
+              className="input"
+              inputMode="decimal"
+              value={promoPrice}
+              onChange={(e) => setPromoPrice(e.target.value)}
+              placeholder="0,00"
+            />
+          </div>
+          {promoPreview && (
+            <div className="split-line">
+              <span>Sua comissao</span>
+              <strong className="badge badge-accent">
+                {formatBRL(promoPreview.commissionCents)} · {bpsToPercent(promoPreview.bps)}%
+              </strong>
+            </div>
+          )}
+          <button
+            className="btn btn-primary btn-block"
+            onClick={() => generateLink(promoPrice)}
+            disabled={busy !== null || !promoPreview}
+          >
+            {busy === "promote" ? "Gerando..." : "Gerar meu link"}
+          </button>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => setShowPromote(false)}
+            disabled={busy !== null}
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
 
       {shareUrl && (
         <div className="split-box">

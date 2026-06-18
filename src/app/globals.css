@@ -160,6 +160,94 @@ table.list th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-t
 
 .empty { text-align: center; color: var(--muted); padding: 3rem 1rem; }
 
+/* ---------- Detalhes do produto (atributos por categoria) ---------- */
+.chip {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.3rem 0.7rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+}
+
+/* Botao de opcional (multi-selecao) usado nos formularios. */
+.chip-toggle {
+  padding: 0.4rem 0.8rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--muted);
+  cursor: pointer; transition: 0.15s; font-family: inherit;
+}
+.chip-toggle:hover { border-color: var(--primary); color: var(--text); }
+.chip-toggle.active {
+  background: var(--primary-weak); border-color: transparent; color: var(--primary);
+}
+
+.detail-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 0.5rem; }
+.detail-item {
+  display: flex; flex-direction: column; gap: 0.15rem;
+  padding: 0.65rem 0; border-bottom: 1px solid var(--border);
+}
+.detail-k { font-size: 0.8rem; color: var(--muted); }
+.detail-v { font-weight: 600; }
+
+/* ---------- Notificacoes ---------- */
+.nav-notif { position: relative; }
+.nav-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px; margin-left: 0.35rem;
+  border-radius: 999px; background: var(--danger); color: #fff;
+  font-size: 0.7rem; font-weight: 700; line-height: 1;
+}
+
+.notif-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.notif { display: block; transition: border-color 0.15s; }
+a.notif:hover { border-color: var(--primary); }
+.notif-unread { border-color: var(--primary); background: var(--primary-weak); }
+.notif-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.notif-title { font-weight: 700; }
+.notif-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--primary); box-shadow: 0 0 8px var(--primary); flex: none;
+}
+.notif-body { margin: 0.35rem 0 0; }
+
+/* ---------- Perfil / Loja publica ---------- */
+.profile-grid { display: grid; gap: 1.5rem; grid-template-columns: 320px 1fr; align-items: start; }
+
+.store-avatar {
+  width: 96px; height: 96px; margin: 0 auto;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.4rem; font-weight: 800; color: #06231b;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  background-size: cover; background-position: center;
+  box-shadow: 0 0 24px rgba(22, 199, 154, 0.35);
+}
+
+.presence-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--primary); box-shadow: 0 0 8px var(--primary);
+}
+.presence-dot.off { background: var(--muted); box-shadow: none; }
+
+.verify-list { list-style: none; margin: 0.5rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.verify-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.92rem; }
+.verify-check {
+  width: 20px; height: 20px; flex: none; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 800;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--muted);
+}
+.verify-check.on { background: var(--primary-weak); border-color: transparent; color: var(--primary); }
+
+.store-filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; }
+
+.store-footer { border-top: 1px solid var(--border); padding-top: 1.5rem; }
+.store-footer-cols {
+  display: grid; gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+.store-footer-cols > div { display: flex; flex-direction: column; gap: 0.4rem; }
+.store-footer-cols strong { font-size: 0.9rem; margin-bottom: 0.2rem; }
+.store-footer-cols a { color: var(--muted); font-size: 0.88rem; }
+.store-footer-cols a:hover { color: var(--text); }
+
 /* ============================================================ */
 /* Responsivo / Mobile                                          */
 /* ============================================================ */
@@ -169,7 +257,9 @@ table.list th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-t
   /* Layouts de 2 colunas passam a 1 coluna */
   .product-grid,
   .cols-2,
-  .cols-2-wide { grid-template-columns: 1fr; }
+  .cols-2-wide,
+  .profile-grid,
+  .detail-list { grid-template-columns: 1fr; }
 
   /* Hero mais compacto */
   .hero { padding: 2.25rem 0 1.25rem; }

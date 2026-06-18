@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function Navbar({ authed, isAdmin }: { authed: boolean; isAdmin?: boolean }) {
+export default function Navbar({ authed, isAdmin, unread = 0 }: { authed: boolean; isAdmin?: boolean; unread?: number }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -40,6 +40,10 @@ export default function Navbar({ authed, isAdmin }: { authed: boolean; isAdmin?:
               <Link href="/vender" onClick={close}>Vender</Link>
               <Link href="/painel" onClick={close}>Painel</Link>
               <Link href="/carteira" onClick={close}>Carteira</Link>
+              <Link href="/notificacoes" onClick={close} className="nav-notif">
+                Notificacoes
+                {unread > 0 && <span className="nav-badge">{unread > 9 ? "9+" : unread}</span>}
+              </Link>
               <Link href="/perfil" onClick={close}>Perfil</Link>
               {isAdmin && <Link href="/admin" onClick={close}>Admin</Link>}
               <button onClick={logout}>Sair</button>

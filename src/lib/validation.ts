@@ -17,27 +17,89 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Senha obrigatoria"),
 });
 
-export const createProductSchema = z.object({
-  title: z.string().trim().min(3).max(160),
-  description: z.string().max(8000).default(""),
-  images: z.array(z.string().url()).max(12).default([]),
-  // Valor em reais; convertido para centavos na rota.
-  amount_total: z.number().positive().or(z.string()),
-  // Percentual de comissao (0 a 100).
-  commission_percent: z.number().min(0).max(100).or(z.string()),
+// Categoria (slug) e mapa flexivel de atributos do anuncio. Os valores sao
+// strings (campos) ou array de strings (opcionais). A semantica de cada campo
+// vive em src/lib/categories.ts; aqui validamos apenas forma e tamanho.
+const categorySchema = z.string().trim().max(40);
+const attributesSchema = z
+  .record(z.string().max(60), z.union([z.string().max(200), z.array(z.string().max(80)).max(40)]))
+  .refine((v) => JSON.stringify(v).length <= 8000, "Atributos muito grandes");
+
+// Valores monetarios em reais (string com virgula ou number); viram centavos na rota.
+const moneyInput = z.number().positive().or(z.string());
+// Percentual de comissao (0 a 100).
+const percentInput = z.number().min(0).max(100).or(z.string());
+
+// Um degrau de comissao para o modelo "tiers": a partir de `price` (reais),
+// paga `percent`. Convertido para {min_price_cents, bps} na rota.
+const commissionTierInput = z.object({
+  price: moneyInput,
+  percent: percentInput,
 });
 
-export const updateProductSchema = z.object({
-  title: z.string().trim().min(3).max(160).optional(),
-  description: z.string().max(8000).optional(),
-  images: z.array(z.string().url()).max(12).optional(),
-  amount_total: z.number().positive().or(z.string()).optional(),
-  commission_percent: z.number().min(0).max(100).or(z.string()).optional(),
-  status: z.enum(["ativo", "pausado", "vendido", "excluido"]).optional(),
-});
+// Modelo de comissao do afiliado:
+//  - linear: cresce de commission_min_percent (no piso) ate commission_percent (no alvo)
+//  - tiers : degraus fixos definidos pelo vendedor
+const commissionModelSchema = z.enum(["linear", "tiers"]);
+
+// Garante coerencia faixa/comissao: piso <= alvo; tiers exige degraus.
+const refineProduct = <T extends {
+  amount_total?: unknown;
+  min_price?: unknown;
+  commission_model?: string;
+  commission_tiers?: unknown[];
+}>(schema: z.ZodType<T>) =>
+  schema.superRefine((v, ctx) => {
+    if (v.commission_model === "tiers" && (!v.commission_tiers || v.commission_tiers.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Defina ao menos um degrau de comissao para o modelo por faixas",
+        path: ["commission_tiers"],
+      });
+    }
+  });
+
+export const createProductSchema = refineProduct(
+  z.object({
+    title: z.string().trim().min(3).max(160),
+    description: z.string().max(8000).default(""),
+    images: z.array(z.string().url()).max(12).default([]),
+    // Preco-alvo (teto / venda direta), em reais.
+    amount_total: moneyInput,
+    // Piso da faixa (menor valor aceito). Ausente => preco fixo (= alvo).
+    min_price: moneyInput.optional(),
+    // Comissao no preco-alvo (maximo).
+    commission_percent: percentInput,
+    // Comissao no piso (linear). Ausente => comissao constante.
+    commission_min_percent: percentInput.optional(),
+    commission_model: commissionModelSchema.default("linear"),
+    commission_tiers: z.array(commissionTierInput).max(12).optional(),
+    category: categorySchema.default("outros"),
+    attributes: attributesSchema.default({}),
+  }),
+);
+
+export const updateProductSchema = refineProduct(
+  z.object({
+    title: z.string().trim().min(3).max(160).optional(),
+    description: z.string().max(8000).optional(),
+    images: z.array(z.string().url()).max(12).optional(),
+    amount_total: moneyInput.optional(),
+    min_price: moneyInput.optional(),
+    commission_percent: percentInput.optional(),
+    commission_min_percent: percentInput.optional(),
+    commission_model: commissionModelSchema.optional(),
+    commission_tiers: z.array(commissionTierInput).max(12).optional(),
+    status: z.enum(["ativo", "pausado", "vendido", "excluido"]).optional(),
+    category: categorySchema.optional(),
+    attributes: attributesSchema.optional(),
+  }),
+);
 
 export const createAffiliateLinkSchema = z.object({
   product_id: z.string().uuid(),
+  // Preco que o afiliado escolheu vender (reais), dentro da faixa do produto.
+  sale_price: moneyInput.optional(),
 });
 
 // Endereco de entrega informado pelo comprador no checkout. E "fotografado" no

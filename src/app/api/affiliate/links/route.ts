@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { appRpc } from "@/lib/supabase/admin";
 import { ok, handleError, readJson } from "@/lib/http";
 import { createAffiliateLinkSchema } from "@/lib/validation";
+import { toCents } from "@/lib/money";
 import { serverEnv } from "@/lib/env";
 
 export async function POST(req: Request) {
@@ -13,11 +14,21 @@ export async function POST(req: Request) {
     const { user } = await requireUser();
     const body = createAffiliateLinkSchema.parse(await readJson(req));
 
-    // Funcao SECURITY DEFINER valida: produto ativo e afiliado != vendedor.
-    const { data, error } = await appRpc().rpc("create_affiliate_link", {
-      p_affiliate_id: user.id,
-      p_product_id: body.product_id,
-    });
+    // Com preco escolhido: cria/atualiza o link gravando o preco (valida a faixa).
+    // Sem preco: apenas gera/reaproveita o link (preserva preco ja definido).
+    // Ambas SECURITY DEFINER validam: produto ativo e afiliado != vendedor.
+    const rpc = appRpc();
+    const { data, error } =
+      body.sale_price !== undefined
+        ? await rpc.rpc("set_affiliate_sale_price", {
+            p_affiliate_id: user.id,
+            p_product_id: body.product_id,
+            p_sale_price: toCents(body.sale_price),
+          })
+        : await rpc.rpc("create_affiliate_link", {
+            p_affiliate_id: user.id,
+            p_product_id: body.product_id,
+          });
 
     if (error) throw error;
 

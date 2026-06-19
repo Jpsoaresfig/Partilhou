@@ -166,3 +166,20 @@ export const withdrawSchema = z.object({
   amount: z.number().positive().or(z.string()),
   pix_key: z.string().trim().min(3).max(140),
 });
+
+// --- Grupos (comunidades de vendas e promocoes) ------------------------------
+// Forma e tamanho dos campos; a semantica de tema/icone vive em src/lib/groups.ts.
+export const createGroupSchema = z.object({
+  name: z.string().trim().min(3, "Nome muito curto").max(80, "Nome muito longo"),
+  description: optionalText(z.string().trim().max(500, "Descricao muito longa")),
+  theme: z
+    .enum(["geral", "promocoes", "eletronicos", "moda", "casa", "automotivo", "regionais"])
+    .default("geral"),
+  visibility: z.enum(["publico", "privado"]).default("publico"),
+  // Emoji/icone curto. Vazio => a vitrine usa o icone do tema.
+  icon: optionalText(z.string().trim().max(8)),
+  // UF (2 letras) para grupos regionais. Validada tambem por CHECK no banco.
+  region_uf: optionalText(
+    z.string().trim().length(2, "UF deve ter 2 letras").transform((v) => v.toUpperCase()),
+  ),
+});

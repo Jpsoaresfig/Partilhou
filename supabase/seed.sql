@@ -111,3 +111,48 @@ values
   ('bbbbbbb1-0000-0000-0000-000000000001','22222222-2222-2222-2222-222222222222','aaaaaaa1-0000-0000-0000-000000000001','demoiphone01'),
   ('bbbbbbb1-0000-0000-0000-000000000002','22222222-2222-2222-2222-222222222222','aaaaaaa1-0000-0000-0000-000000000002','democaloi002')
 on conflict do nothing;
+
+-- ---------------------------------------------------------------------------
+-- Grupos de demonstracao (comunidades de vendas/promocoes). Dono = admin oficial.
+-- O trigger app.handle_new_group() ja inscreve o dono como admin (members_count=1).
+-- ---------------------------------------------------------------------------
+insert into public.groups (id, slug, name, description, theme, region_uf, owner_id)
+values
+  ('99999991-0000-0000-0000-000000000001','achados-e-promocoes','Achados e Promocoes',
+   'A galera compartilha cupons, ofertas relampago e quedas de preco. Postou um achado bom? Solta aqui.',
+   'promocoes', null, '55555555-5555-5555-5555-555555555555'),
+  ('99999991-0000-0000-0000-000000000002','tech-e-gadgets','Tech & Gadgets',
+   'Celulares, fones, consoles e perifericos. Comparativos, reviews e links de promocao de eletronicos.',
+   'eletronicos', null, '55555555-5555-5555-5555-555555555555'),
+  ('99999991-0000-0000-0000-000000000003','moda-e-desapego','Moda & Desapego',
+   'Roupas, tenis e acessorios novos e seminovos. Brecho coletivo e promocoes das lojas parceiras.',
+   'moda', null, '55555555-5555-5555-5555-555555555555'),
+  ('99999991-0000-0000-0000-000000000004','casa-e-decoracao','Casa & Decoracao',
+   'Moveis, eletrodomesticos e itens de decoracao. Ofertas para montar ou renovar o lar gastando pouco.',
+   'casa', null, '55555555-5555-5555-5555-555555555555'),
+  ('99999991-0000-0000-0000-000000000005','carros-e-pecas','Carros & Pecas',
+   'Veiculos, pecas e acessorios automotivos. Promocoes de oficina, pneus e som — e indicacoes da comunidade.',
+   'automotivo', null, '55555555-5555-5555-5555-555555555555'),
+  ('99999991-0000-0000-0000-000000000006','promocoes-sao-paulo','Promocoes Sao Paulo',
+   'Ofertas, feiras e desapegos da regiao de SP. Combine retirada na mao e economize no frete.',
+   'regionais', 'SP', '55555555-5555-5555-5555-555555555555')
+on conflict (id) do nothing;
+
+-- Alguns membros de demonstracao entram nos dois grupos mais ativos.
+insert into public.group_members (group_id, profile_id)
+values
+  ('99999991-0000-0000-0000-000000000001','11111111-1111-1111-1111-111111111111'),
+  ('99999991-0000-0000-0000-000000000001','22222222-2222-2222-2222-222222222222'),
+  ('99999991-0000-0000-0000-000000000001','33333333-3333-3333-3333-333333333333'),
+  ('99999991-0000-0000-0000-000000000002','22222222-2222-2222-2222-222222222222'),
+  ('99999991-0000-0000-0000-000000000002','33333333-3333-3333-3333-333333333333')
+on conflict do nothing;
+
+-- Um post de oferta de exemplo no grupo de promocoes (link externo).
+insert into public.group_posts (id, group_id, author_id, kind, body, link_url, store_name)
+values
+  ('99999992-0000-0000-0000-000000000001','99999991-0000-0000-0000-000000000001',
+   '22222222-2222-2222-2222-222222222222','oferta',
+   'Fone bluetooth com 40% off, achei pouca gente sabendo!',
+   'https://exemplo.com/oferta-fone','Loja Exemplo')
+on conflict (id) do nothing;

@@ -85,10 +85,12 @@ export default async function Home({
           seguranca. A Partilhou retem o pagamento ate a entrega ser confirmada.
         </p>
         <div className="row" style={{ justifyContent: "center" }}>
-          <Link href="/vender" className="btn btn-primary">
+          <Link href="/vender" className="btn btn-primary btn-lg">
+            <span className="btn-ico" aria-hidden>🏷️</span>
             Anunciar produto
           </Link>
-          <Link href="/registrar" className="btn btn-ghost">
+          <Link href="/registrar" className="btn btn-ghost btn-lg">
+            <span className="btn-ico" aria-hidden>🤝</span>
             Comecar a afiliar
           </Link>
         </div>
@@ -162,10 +164,12 @@ export default async function Home({
           </div>
           <div className="row" style={{ alignSelf: "flex-end", gap: "0.5rem" }}>
             <button type="submit" className="btn btn-primary">
+              <span className="btn-ico" aria-hidden>🔍</span>
               Filtrar
             </button>
             {hasFilter && (
               <Link href="/" className="btn btn-ghost">
+                <span className="btn-ico" aria-hidden>✕</span>
                 Limpar
               </Link>
             )}

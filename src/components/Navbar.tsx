@@ -35,6 +35,7 @@ export default function Navbar({ authed, isAdmin, unread = 0 }: { authed: boolea
 
         <div className={`nav-links ${open ? "open" : "closed"}`}>
           <Link href="/" onClick={close}>Explorar</Link>
+          <Link href="/grupos" onClick={close}>Grupos</Link>
           {authed ? (
             <>
               <Link href="/vender" onClick={close}>Vender</Link>

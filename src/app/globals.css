@@ -63,21 +63,34 @@ p { margin: 0 0 0.75rem; }
   color: var(--text); font-size: 1.2rem; line-height: 1; padding: 0.45rem 0.65rem; cursor: pointer;
 }
 
-/* ---------- Buttons ---------- */
+/* ---------- Buttons (estilo Facebook: planos, com icone, hover suave) ---------- */
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-  padding: 0.65rem 1.1rem; border-radius: var(--radius-sm); border: 1px solid transparent;
-  font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.15s ease;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+  padding: 0.6rem 1rem; border-radius: var(--radius-sm); border: 1px solid transparent;
+  font-weight: 600; font-size: 0.95rem; cursor: pointer;
+  transition: background 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, transform 0.05s ease;
   background: var(--surface-2); color: var(--text);
 }
-.btn:hover { transform: translateY(-1px); }
+/* Hover muda o fundo (sem "pular"); clique afunda levemente — como no Facebook. */
+.btn:hover { background: var(--border); }
+.btn:active { transform: scale(0.97); }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--primary-weak); }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* Icone dentro do botao (emoji ou svg). Mantem o alinhamento certinho. */
+.btn .btn-ico { font-size: 1.15em; line-height: 1; display: inline-flex; }
+
 .btn-primary { background: var(--primary); color: #06231b; }
 .btn-primary:hover { background: var(--primary-600); }
+.btn-secondary { background: var(--primary-weak); color: var(--primary); }
+.btn-secondary:hover { background: rgba(22, 199, 154, 0.2); }
 .btn-ghost { background: transparent; border-color: var(--border); color: var(--text); }
+.btn-ghost:hover { background: var(--surface-2); }
 .btn-danger { background: var(--danger-weak); color: var(--danger); border-color: rgba(239,83,80,0.3); }
+.btn-danger:hover { background: rgba(239, 83, 80, 0.2); }
 .btn-block { width: 100%; }
-.btn-sm { padding: 0.45rem 0.75rem; font-size: 0.85rem; }
+.btn-sm { padding: 0.42rem 0.75rem; font-size: 0.85rem; }
+.btn-lg { padding: 0.8rem 1.4rem; font-size: 1.02rem; }
 
 /* ---------- Cards ---------- */
 .card {
@@ -253,6 +266,34 @@ a.notif:hover { border-color: var(--primary); }
 .store-footer-cols strong { font-size: 0.9rem; margin-bottom: 0.2rem; }
 .store-footer-cols a { color: var(--muted); font-size: 0.88rem; }
 .store-footer-cols a:hover { color: var(--text); }
+
+/* ---------- Grupos (comunidades de vendas e promocoes) ---------- */
+.groups-grid {
+  display: grid; gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.group-card { overflow: hidden; padding: 0; display: flex; flex-direction: column; transition: 0.15s; }
+.group-card:hover { border-color: var(--primary); }
+
+/* Capa do grupo: faixa colorida com o emoji/icone por cima. */
+.group-cover {
+  height: 96px; display: flex; align-items: center; justify-content: center;
+  font-size: 2.6rem; position: relative;
+}
+.group-cover::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(15, 17, 21, 0.35));
+}
+.group-cover span { position: relative; z-index: 1; }
+
+.group-body { padding: 0.9rem 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+.group-name { font-weight: 700; font-size: 1.05rem; }
+.group-desc { color: var(--muted); font-size: 0.88rem; flex: 1; }
+.group-meta { display: flex; align-items: center; gap: 0.4rem; color: var(--muted); font-size: 0.82rem; }
+.group-meta .dot-sep { opacity: 0.5; }
+
+/* Filtro de categorias de grupo (pilulas roláveis no topo da pagina). */
+.group-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
 
 /* ============================================================ */
 /* Responsivo / Mobile                                          */

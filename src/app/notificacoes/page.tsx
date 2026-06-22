@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 import MarkAllReadButton from "@/components/MarkAllReadButton";
 
 export const dynamic = "force-dynamic";
@@ -29,10 +29,7 @@ function timeAgo(iso: string): string {
 }
 
 export default async function NotificacoesPage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getServerUser();
   if (!user) redirect("/login");
 
   const { data: items } = await supabase

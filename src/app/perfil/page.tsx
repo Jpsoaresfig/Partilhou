@@ -1,15 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 import ProfileForm from "@/components/ProfileForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function PerfilPage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getServerUser();
   if (!user) redirect("/login");
 
   const [{ data: profile }, { data: priv }, { data: payout }] = await Promise.all([

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { formatBRL } from "@/lib/money";
 import ResolveDispute from "@/components/ResolveDispute";
@@ -7,10 +7,7 @@ import ResolveDispute from "@/components/ResolveDispute";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getServerUser();
   if (!user) redirect("/login");
   if (user.app_metadata?.is_admin !== true) redirect("/");
 

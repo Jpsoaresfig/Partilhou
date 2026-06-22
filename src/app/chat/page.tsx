@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -23,10 +23,7 @@ function ago(iso: string): string {
 }
 
 export default async function ChatListPage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getServerUser();
   if (!user) redirect("/login");
 
   // RLS restringe a conversas em que o usuario participa.

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Partilhou — Marketplace C2C com afiliacao",
@@ -17,20 +17,19 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getServerUser();
 
   let unread = 0;
   if (user) {
-    // Marca presenca ("online"). O proprio banco limita a 1 escrita/min.
-    await supabase.rpc("touch_presence");
-
-    const { count } = await supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .is("read_at", null);
+    // Presenca ("online", limitada a 1 escrita/min pelo banco) e contagem de nao
+    // lidas sao independentes — disparam em paralelo em vez de em serie.
+    const [, { count }] = await Promise.all([
+      supabase.rpc("touch_presence"),
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .is("read_at", null),
+    ]);
     unread = count ?? 0;
   }
 

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 import { formatBRL } from "@/lib/money";
 import WithdrawForm from "@/components/WithdrawForm";
 
@@ -14,10 +14,7 @@ const LEDGER_LABEL: Record<string, string> = {
 };
 
 export default async function CarteiraPage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getServerUser();
   if (!user) redirect("/login");
 
   const [{ data: wallet }, { data: ledger }] = await Promise.all([

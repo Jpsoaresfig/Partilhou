@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 import { formatBRL } from "@/lib/money";
 import StatusBadge from "@/components/StatusBadge";
 import OrderActions from "@/components/OrderActions";
@@ -18,10 +18,7 @@ export default async function OrderPage({
   const { id } = await params;
   const { status } = await searchParams;
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getServerUser();
   if (!user) redirect("/login");
 
   const { data: order } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();

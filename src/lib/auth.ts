@@ -1,7 +1,7 @@
 /**
  * Helpers de autenticacao/autorizacao para as route handlers.
  */
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 
 export class AuthError extends Error {
   code = "insufficient_privilege";
@@ -12,11 +12,7 @@ export class AuthError extends Error {
 
 /** Retorna o usuario autenticado ou lanca AuthError (401/403). */
 export async function requireUser() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const { user, error, supabase } = await getServerUser();
 
   if (error || !user) {
     throw new AuthError();

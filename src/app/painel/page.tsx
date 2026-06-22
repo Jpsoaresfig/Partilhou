@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, getServerUser } from "@/lib/supabase/server";
 import { formatBRL } from "@/lib/money";
 import StatusBadge from "@/components/StatusBadge";
 
@@ -21,10 +21,7 @@ export default async function PainelPage({
   searchParams: Promise<{ tab?: Tab }>;
 }) {
   const { tab = "anuncios" } = await searchParams;
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getServerUser();
   if (!user) redirect("/login");
 
   return (

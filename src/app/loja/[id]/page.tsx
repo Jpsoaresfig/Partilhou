@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 import ProductCard, { type ProductRow } from "@/components/ProductCard";
 import { CATEGORIES } from "@/lib/categories";
 import { UFS } from "@/lib/regions";
@@ -39,10 +39,7 @@ export default async function LojaPage({
   const { id } = await params;
   const { q, categoria, uf, ordenar } = await searchParams;
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getServerUser();
 
   const { data: seller } = await supabase
     .from("profiles")

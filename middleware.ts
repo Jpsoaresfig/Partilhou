@@ -6,9 +6,13 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Roda em todas as rotas exceto assets estaticos e o webhook (que e validado
-  // por assinatura, nao por sessao de cookie).
+  // Roda apenas nas navegacoes de PAGINA (Server Components), onde a sessao
+  // precisa ser renovada nos cookies. Excluimos:
+  //   * assets estaticos do Next e arquivos com extensao (imagens, fontes, css);
+  //   * TODAS as rotas /api/* — cada handler ja se autentica via requireUser()
+  //     (getUser valida o token e regrava os cookies na propria resposta). Rodar
+  //     o middleware aqui dobrava o round-trip de auth por chamada de API.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/webhooks).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|css|js|woff2?|ttf|map)$).*)",
   ],
 };

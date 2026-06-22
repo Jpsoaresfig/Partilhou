@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/server";
 import ChatThread, { type ChatMessage } from "@/components/ChatThread";
 
 export const dynamic = "force-dynamic";
@@ -12,10 +12,7 @@ export default async function ChatThreadPage({
 }) {
   const { id } = await params;
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getServerUser();
   if (!user) redirect("/login");
 
   // RLS: so participantes leem a conversa. Nao-participante => maybeSingle null.

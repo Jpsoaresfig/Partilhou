@@ -130,4 +130,40 @@ begin
   raise notice 'OK: nao-verificado vende; rejected bloqueia; classify respeita o admin.';
 end$$;
 
+-- --- 7) ANTI-OVERSELL: produto reservado nao aceita um segundo pedido. --------
+do $$
+declare
+  v_seller uuid := gen_random_uuid();
+  v_b1     uuid := gen_random_uuid();
+  v_b2     uuid := gen_random_uuid();
+  v_prod   public.products;
+  v_status text;
+  v_blocked boolean := false;
+begin
+  insert into auth.users (id, email, raw_user_meta_data)
+  values
+    (v_seller, 'vendedor3@test.local', '{"full_name":"Vendedor3"}'),
+    (v_b1,     'comprador3a@test.local', '{"full_name":"Comprador3a"}'),
+    (v_b2,     'comprador3b@test.local', '{"full_name":"Comprador3b"}');
+
+  insert into public.products (seller_id, title, amount_total_cents, commission_bps, review_status, trust_score)
+  values (v_seller, 'Item unico', 50000, 1000, 'approved', 80)
+  returning * into v_prod;
+
+  -- 1o comprador cria o pedido: o produto deve ser reservado.
+  perform app.create_order(v_b1, v_prod.id, null);
+  select status into v_status from public.products where id = v_prod.id;
+  assert v_status = 'reservado', 'produto deveria ficar reservado apos o pedido';
+
+  -- 2o comprador no mesmo item deve falhar (produto nao esta mais 'ativo').
+  begin
+    perform app.create_order(v_b2, v_prod.id, null);
+  exception when others then
+    v_blocked := true;
+  end;
+  assert v_blocked, 'oversell: segundo pedido no mesmo item deveria falhar';
+
+  raise notice 'OK: anti-oversell (reserva no pedido) funciona.';
+end$$;
+
 rollback;

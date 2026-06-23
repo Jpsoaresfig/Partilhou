@@ -77,13 +77,31 @@ export async function POST(req: Request) {
     if (orderId) {
       // 4) Transicao idempotente conforme o status.
       if (info.status === "aprovado") {
-        const { error } = await rpc.rpc("confirm_payment", {
-          p_order_id: orderId,
-          p_provider: provider.name,
-          p_provider_payment_id: info.providerPaymentId,
-        });
-        if (error) throw error;
-        resultStatus = "processado";
+        // Defesa: confere o valor pago contra o total do pedido. Se divergir,
+        // NAO confirma (evita liberar split com valor errado) e marca p/ revisao.
+        let amountOk = true;
+        if (info.amountCents != null) {
+          const { data: ord } = await admin
+            .from("orders")
+            .select("amount_total_cents")
+            .eq("id", orderId)
+            .maybeSingle();
+          amountOk = !!ord && ord.amount_total_cents === info.amountCents;
+        }
+        if (!amountOk) {
+          console.error(
+            `[webhook] valor divergente no pedido ${orderId}: pago=${info.amountCents}`,
+          );
+          resultStatus = "ignorado";
+        } else {
+          const { error } = await rpc.rpc("confirm_payment", {
+            p_order_id: orderId,
+            p_provider: provider.name,
+            p_provider_payment_id: info.providerPaymentId,
+          });
+          if (error) throw error;
+          resultStatus = "processado";
+        }
       } else if (info.status === "estornado") {
         const { error } = await rpc.rpc("refund_order", { p_order_id: orderId });
         if (error) throw error;

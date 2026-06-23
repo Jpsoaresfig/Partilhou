@@ -35,7 +35,15 @@ export const serverEnv = {
     return required("SUPABASE_SERVICE_ROLE_KEY", process.env.SUPABASE_SERVICE_ROLE_KEY);
   },
   get paymentProvider() {
-    return (process.env.PAYMENT_PROVIDER ?? "mock").toLowerCase();
+    const provider = (process.env.PAYMENT_PROVIDER ?? "mock").toLowerCase();
+    // Trava de seguranca: o provider 'mock' aprova pagamentos sem cobrar. Em
+    // producao isso permitiria marcar pedidos como pagos de graca.
+    if (provider === "mock" && process.env.NODE_ENV === "production") {
+      throw new Error(
+        "PAYMENT_PROVIDER=mock e proibido em producao. Configure 'mercadopago'.",
+      );
+    }
+    return provider;
   },
   get mercadoPagoAccessToken() {
     return required("MERCADOPAGO_ACCESS_TOKEN", process.env.MERCADOPAGO_ACCESS_TOKEN);

@@ -5,9 +5,11 @@
  */
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import { appRpc } from "@/lib/supabase/admin";
 import { ok, fail, handleError, readJson } from "@/lib/http";
 import { updateProductSchema } from "@/lib/validation";
 import { productPricingColumns } from "@/lib/products";
+import { calculateTrustScore } from "@/lib/trust";
 
 export async function GET(
   _req: Request,
@@ -57,6 +59,27 @@ export async function PATCH(
 
     if (error) throw error;
     if (!data) return fail("Anuncio nao encontrado ou sem permissao", 404);
+
+    // Re-classifica a confianca a partir dos dados ATUALIZADOS (nao bloqueante;
+    // classify_product respeita decisoes de moderacao do admin). Falha aqui nao
+    // invalida a edicao.
+    try {
+      const trust = calculateTrustScore({
+        images: data.images,
+        description: data.description,
+        imei: data.imei,
+        category: data.category,
+        attributes: data.attributes,
+      });
+      await appRpc().rpc("classify_product", {
+        p_product_id: id,
+        p_status: trust.status,
+        p_trust_score: trust.score,
+      });
+    } catch (e) {
+      console.error("[products PATCH] reclassificacao falhou:", e);
+    }
+
     return ok({ product: data });
   } catch (err) {
     return handleError(err);

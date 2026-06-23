@@ -24,9 +24,10 @@ begin
     (v_buyer, 'comprador@test.local', '{"full_name":"Comprador"}'),
     (v_affiliate, 'afiliado@test.local', '{"full_name":"Afiliado"}');
 
-  -- Produto de R$ 100,00 com 15% de comissao.
-  insert into public.products (seller_id, title, amount_total_cents, commission_bps)
-  values (v_seller, 'Cadeira usada', 10000, 1500)
+  -- Produto de R$ 100,00 com 15% de comissao. Aprovado na validacao (so produto
+  -- aprovado/parcial pode gerar pedido — ver o gate em app.create_order).
+  insert into public.products (seller_id, title, amount_total_cents, commission_bps, review_status, trust_score)
+  values (v_seller, 'Cadeira usada', 10000, 1500, 'approved', 80)
   returning * into v_product;
 
   -- Afiliado gera link.
@@ -87,6 +88,46 @@ begin
   assert (select ok from app.reconcile_wallet(v_affiliate)), 'reconciliacao afiliado falhou';
 
   raise notice 'OK: fluxo de escrow + split + idempotencia + ledger balanceado.';
+end$$;
+
+-- --- 6) GATE NAO BLOQUEANTE: classifica, nao barra. So 'rejected' nao vende. ---
+do $$
+declare
+  v_seller  uuid := gen_random_uuid();
+  v_buyer   uuid := gen_random_uuid();
+  v_prod    public.products;
+  v_blocked boolean := false;
+begin
+  insert into auth.users (id, email, raw_user_meta_data)
+  values
+    (v_seller, 'vendedor2@test.local', '{"full_name":"Vendedor2"}'),
+    (v_buyer,  'comprador2@test.local', '{"full_name":"Comprador2"}');
+
+  insert into public.products (seller_id, title, amount_total_cents, commission_bps)
+  values (v_seller, 'iPhone teste gate', 200000, 1000)
+  returning * into v_prod;
+
+  -- Classificacao automatica 'unverified' NAO bloqueia: ainda pode ser vendido.
+  perform app.classify_product(v_prod.id, 'unverified', 20);
+  perform app.create_order(v_buyer, v_prod.id, null);  -- nao deve levantar
+
+  -- Reprovado pelo admin: nao pode gerar pedido. (Isola o gate de review_status
+  -- mantendo status 'ativo' — review_product reprovado tambem pausa o anuncio.)
+  perform app.review_product(v_prod.id, 'rejected', 0, 'IMEI bloqueado', null);
+  update public.products set status = 'ativo' where id = v_prod.id;
+  begin
+    perform app.create_order(v_buyer, v_prod.id, null);
+  exception when others then
+    v_blocked := true;
+  end;
+  assert v_blocked, 'gate falhou: produto rejected nao deveria gerar pedido';
+
+  -- classify_product respeita a decisao manual: nao re-promove um reprovado.
+  perform app.classify_product(v_prod.id, 'approved', 95);
+  select * into v_prod from public.products where id = v_prod.id;
+  assert v_prod.review_status = 'rejected', 'classify nao deveria sobrescrever rejected';
+
+  raise notice 'OK: nao-verificado vende; rejected bloqueia; classify respeita o admin.';
 end$$;
 
 rollback;

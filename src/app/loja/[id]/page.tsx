@@ -17,7 +17,7 @@ type Search = {
 };
 
 const PRODUCT_COLS =
-  "id, title, images, amount_total_cents, commission_bps, commission_cents, category, region_uf, created_at";
+  "id, title, images, amount_total_cents, commission_bps, commission_cents, category, region_uf, review_status, trust_score, created_at";
 
 /** Indicador de presenca a partir de last_seen_at. Null = sem dado (nao exibir). */
 function presence(lastSeen: string | null): { online: boolean; label: string } | null {
@@ -78,7 +78,9 @@ export default async function LojaPage({
     .from("products_with_split")
     .select(PRODUCT_COLS)
     .eq("seller_id", id)
-    .eq("status", "ativo");
+    .eq("status", "ativo")
+    // Nao bloqueante: mostra tudo menos reprovados.
+    .neq("review_status", "rejected");
 
   if (categoria) query = query.eq("category", categoria);
   if (uf) query = query.eq("region_uf", uf);
@@ -94,7 +96,8 @@ export default async function LojaPage({
     .from("products_with_split")
     .select("id", { count: "exact", head: true })
     .eq("seller_id", id)
-    .eq("status", "ativo");
+    .eq("status", "ativo")
+    .neq("review_status", "rejected");
 
   // Historico: anuncios ativos publicados nos ultimos 180 dias.
   const since = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString();
@@ -103,6 +106,7 @@ export default async function LojaPage({
     .select("id", { count: "exact", head: true })
     .eq("seller_id", id)
     .eq("status", "ativo")
+    .neq("review_status", "rejected")
     .gte("created_at", since);
 
   const total = totalActive ?? list.length;

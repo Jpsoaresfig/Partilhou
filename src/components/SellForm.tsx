@@ -16,6 +16,7 @@ export default function SellForm() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [imei, setImei] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [pricing, setPricing] = useState<PricingValue>(EMPTY_PRICING);
   const [category, setCategory] = useState(DEFAULT_CATEGORY);
@@ -54,6 +55,7 @@ export default function SellForm() {
         body: JSON.stringify({
           title,
           description,
+          imei: imei.trim() || undefined,
           images,
           ...pricingToBody(pricing),
           category,
@@ -77,7 +79,10 @@ export default function SellForm() {
   return (
     <main className="container" style={{ maxWidth: 760, paddingTop: "2rem" }}>
       <h1>Anunciar produto</h1>
-      <p className="muted mb-3">Defina o preco e quanto da venda vai para quem te indicar.</p>
+      <p className="muted mb-3">
+        Defina o preco e quanto da venda vai para quem te indicar. Seu anuncio entra
+        na hora e recebe um selo de confianca automatico conforme a completude dos dados.
+      </p>
 
       {error && <div className="alert alert-error">{error}</div>}
 
@@ -104,8 +109,23 @@ export default function SellForm() {
             onOpcionais={setOpcionais}
           />
           <div className="field">
-            <label>Imagens</label>
+            <label>IMEI (celulares)</label>
+            <input
+              className="input"
+              value={imei}
+              onChange={(e) => setImei(e.target.value.replace(/\D/g, ""))}
+              inputMode="numeric"
+              maxLength={16}
+              placeholder="15 digitos (disque *#06#). Opcional, mas acelera a verificacao."
+            />
+            <small className="muted">Conferimos o IMEI contra bloqueio/roubo na validacao.</small>
+          </div>
+          <div className="field">
+            <label>Imagens (recomendado 6+: frente, verso, tela ligada, laterais, IMEI)</label>
             <ImageUploader value={images} onChange={setImages} />
+            <small className="muted">
+              Mais fotos e dados completos elevam seu selo de confianca (🟢 Verificado).
+            </small>
           </div>
           <PricingFields value={pricing} onChange={setPricing} platformFeeBps={platformFeeBps} />
           <button className="btn btn-primary btn-block" disabled={loading}>

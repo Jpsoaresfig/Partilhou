@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerUser } from "@/lib/supabase/server";
 import ProfileForm from "@/components/ProfileForm";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,18 @@ export default async function PerfilPage() {
           pix_key: payout?.pix_key ?? "",
         }}
       />
+
+      <section className="card mt-3">
+        <div className="row between wrap" style={{ gap: "0.75rem" }}>
+          <div>
+            <strong>Aparência</strong>
+            <p className="muted small" style={{ margin: 0 }}>
+              Alternar entre tema claro e escuro.
+            </p>
+          </div>
+          <ThemeToggle />
+        </div>
+      </section>
     </main>
   );
 }

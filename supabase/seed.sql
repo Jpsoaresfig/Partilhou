@@ -75,7 +75,9 @@ end$$;
 -- ---------------------------------------------------------------------------
 -- Anuncios do vendedor (status ativo). Comissao em basis points.
 -- ---------------------------------------------------------------------------
-insert into public.products (id, seller_id, title, description, images, amount_total_cents, commission_bps, status)
+-- Ja entram 'approved' (com score) para a loja abrir populada. Anuncios reais
+-- nascem 'pending_review' e passam pela moderacao do admin.
+insert into public.products (id, seller_id, title, description, images, amount_total_cents, commission_bps, status, imei, review_status, trust_score)
 values
   (
     'aaaaaaa1-0000-0000-0000-000000000001',
@@ -83,7 +85,7 @@ values
     'iPhone 12 128GB (usado, impecavel)',
     E'Bateria 89%. Sem riscos na tela. Acompanha cabo e caixa.\nEntrega para todo o Brasil.',
     array['https://images.unsplash.com/photo-1605236453806-6ff36851218e?w=800'],
-    180000, 1000, 'ativo'
+    180000, 1000, 'ativo', '356938035643809', 'approved', 90
   ),
   (
     'aaaaaaa1-0000-0000-0000-000000000002',
@@ -91,7 +93,7 @@ values
     'Bicicleta Caloi Aro 29 (seminova)',
     E'Usada poucas vezes. Freios a disco, 21 marchas. Revisada.',
     array['https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800'],
-    95000, 1500, 'ativo'
+    95000, 1500, 'ativo', null, 'partial', 60
   ),
   (
     'aaaaaaa1-0000-0000-0000-000000000003',
@@ -99,7 +101,7 @@ values
     'Cadeira Gamer ThunderX3 (preta/vermelha)',
     E'Reclinavel, apoio lombar. Pequeno desgaste no apoio de braco.',
     array['https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=800'],
-    52000, 1200, 'ativo'
+    52000, 1200, 'ativo', null, 'unverified', 35
   )
 on conflict (id) do nothing;
 

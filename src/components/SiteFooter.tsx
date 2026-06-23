@@ -20,6 +20,7 @@ export default function SiteFooter({ showGroups = false }: { showGroups?: boolea
           <div>
             <h4>Explorar</h4>
             <Link href="/">Início</Link>
+            <Link href="/vendas-rapidas">Vendas Rápidas</Link>
             {showGroups && <Link href="/grupos">Grupos</Link>}
             <Link href="/vender">Anunciar produto</Link>
           </div>
@@ -33,6 +34,7 @@ export default function SiteFooter({ showGroups = false }: { showGroups?: boolea
 
           <div>
             <h4>Ajuda &amp; Legal</h4>
+            <Link href="/confianca">Por que é seguro</Link>
             <Link href="/reportar">Reportar problema</Link>
             <Link href="/termos">Termos de Uso</Link>
             <Link href="/privacidade">Política de Privacidade</Link>

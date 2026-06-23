@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import ThemeToggle from "./ThemeToggle";
 import Icon, { type IconName } from "./icons";
 
 /** Item do header: ícone (linha) em cima, nome embaixo (estilo Facebook). */
@@ -84,7 +83,6 @@ export default function Navbar({
 
           {authed ? (
             <>
-              <NavItem href="/vender" icon="dollar" label="Anunciar" active={is("/vender")} onClick={close} />
               <NavItem href="/painel" icon="store" label="Painel" active={is("/painel")} onClick={close} />
               <NavItem href="/carteira" icon="wallet" label="Carteira" active={is("/carteira")} onClick={close} />
               <NavItem
@@ -99,7 +97,6 @@ export default function Navbar({
               {isAdmin && (
                 <NavItem href="/admin" icon="shield" label="Admin" active={is("/admin")} onClick={close} />
               )}
-              <ThemeToggleSlot />
               <button className="nav-item" onClick={logout}>
                 <span className="nav-ico">
                   <Icon name="logout" />
@@ -115,25 +112,10 @@ export default function Navbar({
                   Criar conta
                 </Link>
               </span>
-              <ThemeToggleSlot />
             </>
           )}
         </div>
       </div>
     </nav>
-  );
-}
-
-/** Mostra o sol/lua redondo no desktop e um item "Tema" no menu mobile. */
-function ThemeToggleSlot() {
-  return (
-    <>
-      <span className="theme-desktop">
-        <ThemeToggle />
-      </span>
-      <span className="theme-mobile">
-        <ThemeToggle compact />
-      </span>
-    </>
   );
 }

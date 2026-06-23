@@ -195,6 +195,8 @@ html[data-theme="dark"] .nav { background: rgba(36, 37, 38, 0.92); }
 .badge-accent { background: rgba(255,180,84,0.14); color: var(--accent); border-color: transparent; }
 .badge-danger { background: var(--danger-weak); color: var(--danger); border-color: transparent; }
 .badge-warn { background: rgba(240,160,0,0.14); color: var(--warn); border-color: transparent; }
+.badge-success { background: rgba(54,179,126,0.16); color: #36b37e; border-color: transparent; }
+.badge-muted { background: var(--surface-2); color: var(--muted); }
 
 /* ---------- Forms ---------- */
 .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.9rem; }
@@ -405,6 +407,53 @@ a.notif:hover { border-color: var(--primary); }
 }
 .chat-fab-wrap:hover .chat-fab-label { opacity: 1; transform: translateX(0); }
 
+/* ---------- Selos de confianca flutuantes (canto inferior esquerdo) ---------- */
+.trust-fab-wrap { position: fixed; left: 20px; bottom: 20px; z-index: 50; }
+.trust-fab {
+  width: 60px; height: 60px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--primary), var(--primary-600));
+  color: #fff; border: none; cursor: pointer;
+  box-shadow: 0 6px 20px rgba(24, 119, 242, 0.4);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.trust-fab:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 10px 26px rgba(24, 119, 242, 0.5); }
+.trust-fab:active { transform: scale(0.96); }
+.trust-fab-backdrop {
+  position: fixed; inset: 0; z-index: -1;
+  background: transparent; border: none; cursor: default;
+}
+.trust-fab-panel {
+  position: absolute; left: 0; bottom: 72px;
+  display: flex; flex-direction: column; gap: 0.85rem;
+  width: 240px; padding: 1rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  animation: trust-pop 0.14s ease;
+}
+@keyframes trust-pop {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.trust-fab-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+.trust-fab-actions .btn { width: 100%; justify-content: center; }
+
+/* ---------- Barra inferior (mobile) ---------- */
+.mobile-tabbar { display: none; }
+.mtab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 0.5rem 0.25rem; color: var(--muted); font-size: 0.72rem; font-weight: 600;
+}
+.mtab.active { color: var(--primary); }
+.mtab .mtab-ic { position: relative; display: inline-flex; }
+.mtab-badge {
+  position: absolute; top: -6px; right: -8px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px; background: var(--danger); color: #fff;
+  font-size: 0.68rem; font-weight: 800; line-height: 1; border: 2px solid var(--surface);
+}
+
 /* ---------- Rodape global ---------- */
 .site-footer {
   border-top: 1px solid var(--border); background: var(--surface);
@@ -457,10 +506,33 @@ a.notif:hover { border-color: var(--primary); }
 .hero-card .btn-primary:hover { background: #eef3ff; }
 .hero-card .btn-ghost { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.4); color: #fff; }
 .hero-card .btn-ghost:hover { background: rgba(255, 255, 255, 0.22); }
-.hero-stats { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1.5rem; }
-.hero-stat { display: flex; flex-direction: column; }
-.hero-stat strong { font-size: 1.3rem; }
-.hero-stat span { color: rgba(255, 255, 255, 0.85); font-size: 0.82rem; }
+
+/* Vendas Rápidas — faixa de estatisticas de oportunidade. */
+.fast-stats { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.stat { text-align: center; padding: 1.1rem 1rem; }
+.stat-num { display: block; font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+
+/* Confiança — pilares de seguranca. */
+.trust-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.trust-pillar { padding: 1.3rem; }
+.trust-pillar-ico {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 12px; margin-bottom: 0.6rem;
+  background: rgba(24, 119, 242, 0.12); color: var(--primary);
+}
+.trust-pillar h3 { margin: 0 0 0.35rem; font-size: 1.05rem; }
+
+/* Confiança — comparativo vs marketplace comum. */
+.compare-card { padding: 0; overflow: hidden; }
+.compare-table { width: 100%; border-collapse: collapse; }
+.compare-table th, .compare-table td { padding: 0.85rem 1rem; text-align: left; font-size: 0.92rem; vertical-align: top; }
+.compare-table thead th { background: var(--surface-2, rgba(127,127,127,0.06)); font-weight: 700; }
+.compare-table tbody tr + tr td { border-top: 1px solid var(--border); }
+.compare-table td:first-child { border-right: 1px solid var(--border); }
+.compare-bad { color: var(--muted); }
+.compare-good { color: var(--text); font-weight: 500; }
+.trust-cta { text-align: center; padding: 2rem; }
+.trust-cta .row { justify-content: center; flex-wrap: wrap; }
 
 /* Feedback do CEP (Correios/ViaCEP) no formulario de endereco. */
 .cep-status { font-size: 0.8rem; margin-top: 0.15rem; }
@@ -520,6 +592,18 @@ a.notif:hover { border-color: var(--primary); }
 
   /* Botoes em coluna ficam full-width onde fizer sentido */
   .hero .row .btn { flex: 1; }
+
+  /* ---- Barra inferior fixa no mobile ---- */
+  .mobile-tabbar {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    background: var(--surface); border-top: 1px solid var(--border);
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.12);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* Espaco para o conteudo nao ficar escondido atras da barra. */
+  body { padding-bottom: 64px; }
+  /* Os botoes flutuantes (chat/atalhos) dao lugar a barra no mobile. */
+  .chat-fab-wrap, .trust-fab-wrap { display: none; }
 }
 
 /* Telas muito pequenas */

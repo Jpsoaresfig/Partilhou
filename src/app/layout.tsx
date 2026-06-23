@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import SiteFooter from "@/components/SiteFooter";
 import ChatBubble from "@/components/ChatBubble";
+import TrustFab from "@/components/TrustFab";
+import MobileTabBar from "@/components/MobileTabBar";
 import { getServerUser } from "@/lib/supabase/server";
 import { groupsEnabled } from "@/lib/flags";
 
@@ -60,7 +62,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         />
         {children}
         <SiteFooter showGroups={showGroups} />
+        <TrustFab />
         {user && <ChatBubble unread={unreadChat} />}
+        <MobileTabBar unread={unreadChat} />
       </body>
     </html>
   );

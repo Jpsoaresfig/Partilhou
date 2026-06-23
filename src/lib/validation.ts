@@ -69,6 +69,17 @@ const attributesSchema = z
   .record(z.string().max(60), z.union([z.string().max(200), z.array(z.string().max(80)).max(40)]))
   .refine((v) => JSON.stringify(v).length <= 8000, "Atributos muito grandes");
 
+// Fotos RECOMENDADAS para selo "Verificado" (frente, verso, tela ligada,
+// laterais, IMEI...). NAO e um minimo de criacao: a validacao classifica, nao
+// bloqueia. Usado pelo calculo de trust_score (src/lib/trust.ts).
+export const MIN_PRODUCT_IMAGES = 6;
+
+// IMEI estruturado (celulares): 14 a 16 digitos (15 padrao; aceita IMEISV).
+// Opcional no MVP; a verificacao de bloqueio/roubo e externa (manual no inicio).
+const imeiSchema = optionalText(
+  z.string().trim().regex(/^\d{14,16}$/, "IMEI deve ter de 14 a 16 digitos"),
+);
+
 // Valores monetarios em reais (string com virgula ou number); viram centavos na rota.
 const moneyInput = z.number().positive().or(z.string());
 // Percentual de comissao (0 a 100).
@@ -107,7 +118,10 @@ export const createProductSchema = refineProduct(
   z.object({
     title: z.string().trim().min(3).max(160),
     description: z.string().max(8000).default(""),
-    images: z.array(z.string().url()).max(12).default([]),
+    // Pelo menos 1 foto para o anuncio existir; 6+ sobem o trust_score (nao bloqueia).
+    images: z.array(z.string().url()).min(1, "Envie ao menos 1 foto do produto").max(12),
+    // IMEI (celulares). Opcional, mas estruturado para a verificacao.
+    imei: imeiSchema,
     // Preco-alvo (teto / venda direta), em reais.
     amount_total: moneyInput,
     // Piso da faixa (menor valor aceito). Ausente => preco fixo (= alvo).
@@ -127,7 +141,8 @@ export const updateProductSchema = refineProduct(
   z.object({
     title: z.string().trim().min(3).max(160).optional(),
     description: z.string().max(8000).optional(),
-    images: z.array(z.string().url()).max(12).optional(),
+    images: z.array(z.string().url()).min(1).max(12).optional(),
+    imei: imeiSchema,
     amount_total: moneyInput.optional(),
     min_price: moneyInput.optional(),
     commission_percent: percentInput.optional(),

@@ -71,6 +71,15 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
             : "Uma conta para vender, comprar e afiliar."}
         </p>
 
+        {mode === "register" && (
+          <div className="alert alert-ok" role="note">
+            🔒 Esta plataforma utiliza <strong>validação de produtos</strong> e{" "}
+            <strong>pagamento intermediado</strong> para reduzir riscos em compras
+            e vendas de eletrônicos usados. Ainda assim, recomendamos atenção às
+            informações do anúncio.
+          </div>
+        )}
+
         {error && <div className="alert alert-error">{error}</div>}
         {info && <div className="alert alert-ok">{info}</div>}
 

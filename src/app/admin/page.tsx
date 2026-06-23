@@ -8,6 +8,7 @@ import { groupsEnabled } from "@/lib/flags";
 import StatusBadge from "@/components/StatusBadge";
 import ResolveDispute from "@/components/ResolveDispute";
 import ResolveReport from "@/components/ResolveReport";
+import ReviewProduct from "@/components/ReviewProduct";
 import FeatureToggle from "@/components/FeatureToggle";
 
 export const dynamic = "force-dynamic";
@@ -340,44 +341,67 @@ async function Pedidos({ admin }: { admin: Sb }) {
 async function Produtos({ admin }: { admin: Sb }) {
   const { data } = await admin
     .from("products")
-    .select("id, title, amount_total_cents, min_price_cents, commission_bps, status, category, region_uf, created_at")
+    .select(
+      "id, title, amount_total_cents, min_price_cents, commission_bps, status, category, region_uf, imei, review_status, trust_score, created_at",
+    )
+    // Pendentes de validacao primeiro (fila de moderacao), depois os mais recentes.
+    .order("review_status", { ascending: true })
     .order("created_at", { ascending: false })
     .limit(CAP);
 
   if (!data?.length) return <Empty>Nenhum produto.</Empty>;
 
+  const pendentes = data.filter((p) => p.review_status === "pending_review").length;
+
   return (
-    <table className="list">
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Preco</th>
-          <th>Comissao</th>
-          <th>Categoria</th>
-          <th>UF</th>
-          <th>Status</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((p) => (
-          <tr key={p.id}>
-            <td>{p.title}</td>
-            <td>
-              {formatBRL(p.amount_total_cents)}
-              {p.min_price_cents && (
-                <span className="muted small"> (min {formatBRL(p.min_price_cents)})</span>
-              )}
-            </td>
-            <td>{(p.commission_bps / 100).toFixed(0)}%</td>
-            <td className="muted small">{p.category}</td>
-            <td className="muted small">{p.region_uf ?? "—"}</td>
-            <td><span className="badge">{p.status}</span></td>
-            <td><Link href={`/produto/${p.id}`} className="btn btn-sm btn-ghost">Ver</Link></td>
+    <div className="stack">
+      <p className="muted small">
+        {pendentes > 0
+          ? `${pendentes} anuncio(s) aguardando validacao. Confira fotos + IMEI antes de aprovar.`
+          : "Nenhum anuncio aguardando validacao."}
+      </p>
+      <table className="list">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Preco</th>
+            <th>Comissao</th>
+            <th>IMEI</th>
+            <th>Validacao</th>
+            <th>Acao</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {data.map((p) => (
+            <tr key={p.id}>
+              <td>
+                <Link href={`/produto/${p.id}`}>{p.title}</Link>
+                <div className="muted small">{p.category} · {p.region_uf ?? "—"}</div>
+              </td>
+              <td>
+                {formatBRL(p.amount_total_cents)}
+                {p.min_price_cents && (
+                  <span className="muted small"> (min {formatBRL(p.min_price_cents)})</span>
+                )}
+              </td>
+              <td>{(p.commission_bps / 100).toFixed(0)}%</td>
+              <td className="muted small">{p.imei ? <code>{p.imei}</code> : "—"}</td>
+              <td>
+                <span className="badge">{p.review_status}</span>
+                <div className="muted small">score {p.trust_score}/100</div>
+              </td>
+              <td>
+                <ReviewProduct
+                  productId={p.id}
+                  reviewStatus={p.review_status}
+                  trustScore={p.trust_score}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

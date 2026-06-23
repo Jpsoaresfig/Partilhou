@@ -18,7 +18,7 @@ type Search = {
 };
 
 const PRODUCT_COLS =
-  "id, title, images, amount_total_cents, commission_bps, commission_cents, category, region_uf, created_at";
+  "id, title, images, amount_total_cents, commission_bps, commission_cents, category, region_uf, review_status, trust_score, created_at";
 
 /** Converte reais (string do form) em centavos; ignora valores invalidos. */
 function reaisToCents(v?: string): number | null {
@@ -42,7 +42,10 @@ export default async function Home({
   let query = supabase
     .from("products_with_split")
     .select(PRODUCT_COLS)
-    .eq("status", "ativo");
+    .eq("status", "ativo")
+    // Mostra todos os anuncios publicados, exceto reprovados. Nao-verificados
+    // aparecem — apenas com menos destaque (ver ranking por trust_score abaixo).
+    .in("review_status", ["approved", "partial", "unverified"]);
 
   if (categoria) query = query.eq("category", categoria);
   if (uf) query = query.eq("region_uf", uf);
@@ -64,7 +67,10 @@ export default async function Home({
       query = query.order("amount_total_cents", { ascending: false });
       break;
     default:
-      query = query.order("created_at", { ascending: false });
+      // Destaque por confianca: verificados (score alto) primeiro, empate por data.
+      query = query
+        .order("trust_score", { ascending: false })
+        .order("created_at", { ascending: false });
   }
 
   const { data: products } = await query.limit(48);
@@ -84,29 +90,18 @@ export default async function Home({
             O vendedor define a comissão, o afiliado divulga e todos recebem com
             segurança. A Partilhou retém o pagamento até a entrega ser confirmada.
           </p>
-          <div className="row wrap" style={{ marginTop: "1.25rem" }}>
-            <Link href="/vender" className="btn btn-primary btn-lg">
-              <Icon name="dollar" size={18} />
-              Anunciar produto
+          <p className="small" style={{ marginTop: "0.75rem", opacity: 0.92 }}>
+            🔒 Todos os produtos passam por validação de confiança e as transações são
+            protegidas por sistema de pagamento intermediado para reduzir riscos em
+            compras e vendas de eletrônicos usados.
+          </p>
+          <div className="row" style={{ gap: "0.5rem", marginTop: "1rem" }}>
+            <Link href="/vendas-rapidas" className="btn btn-primary">
+              <Icon name="dollar" size={17} /> Vendas Rápidas
             </Link>
-            <Link href="/registrar" className="btn btn-ghost btn-lg">
-              <Icon name="users" size={18} />
-              Começar a afiliar
+            <Link href="/confianca" className="btn btn-ghost">
+              <Icon name="shield" size={17} /> Por que é seguro
             </Link>
-          </div>
-          <div className="hero-stats">
-            <div className="hero-stat">
-              <strong>Sem mensalidade</strong>
-              <span>cobramos só na venda</span>
-            </div>
-            <div className="hero-stat">
-              <strong>Escrow</strong>
-              <span>dinheiro retido até a entrega</span>
-            </div>
-            <div className="hero-stat">
-              <strong>Afiliados</strong>
-              <span>renda divulgando anúncios</span>
-            </div>
           </div>
         </div>
       </section>

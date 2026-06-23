@@ -13,6 +13,38 @@ export default function PrivacidadePage() {
         em linha com a Lei Geral de Proteção de Dados (LGPD).
       </p>
 
+      <h2>Como a Partilhou funciona</h2>
+      <ul>
+        <li>
+          <strong>Intermediação de vendas:</strong> a Partilhou é uma plataforma que
+          <em> intermedia</em> a compra e venda de eletrônicos usados entre pessoas.
+          Não somos a vendedora dos produtos: conectamos donos de produtos, vendedores
+          e compradores, e organizamos o pagamento.
+        </li>
+        <li>
+          <strong>Validação de produtos:</strong> cada anúncio passa por uma
+          classificação de confiança (fotos, descrição estruturada e, quando aplicável,
+          IMEI), exibida como selo e <em>trust score</em>. A validação <em>classifica</em> a
+          confiança do anúncio; ela ajuda a orientar a decisão, mas não garante o estado
+          do produto.
+        </li>
+        <li>
+          <strong>Pagamento intermediado (escrow):</strong> o valor pago pelo comprador
+          fica retido pela plataforma e só é repassado após a confirmação da entrega,
+          reduzindo o risco de calote dos dois lados.
+        </li>
+        <li>
+          <strong>Uso dos dados:</strong> seus dados são usados apenas para operar o
+          sistema (anúncios, validação, pagamento, repasse e suporte) — não para outras
+          finalidades alheias ao serviço.
+        </li>
+        <li>
+          <strong>Redução, não eliminação de risco:</strong> validação e escrow
+          <em> reduzem</em> o risco de fraude, mas nenhum sistema o elimina por completo.
+          Use o bom senso e prefira sempre concluir a transação dentro da plataforma.
+        </li>
+      </ul>
+
       <h2>1. Dados que coletamos</h2>
       <ul>
         <li>

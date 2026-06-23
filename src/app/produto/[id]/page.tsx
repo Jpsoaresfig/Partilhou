@@ -9,6 +9,7 @@ import {
   affiliateEffectivePrice,
 } from "@/lib/money";
 import { describeAttributes } from "@/lib/categories";
+import { trustBadge } from "@/lib/trust";
 import ProductActions from "@/components/ProductActions";
 import Reputation from "@/components/Reputation";
 import ChatButton from "@/components/ChatButton";
@@ -146,7 +147,17 @@ export default async function ProductPage({
         {/* Info + acoes */}
         <div className="stack">
           <div className="card">
-            <span className="badge mb-2">{category.icon} {category.label}</span>
+            <div className="row wrap mb-2" style={{ gap: "0.4rem" }}>
+              <span className="badge">{category.icon} {category.label}</span>
+              {(() => {
+                const tb = trustBadge(product.review_status, product.trust_score);
+                return (
+                  <span className={`badge ${tb.className}`} title={tb.title}>
+                    {tb.label}
+                  </span>
+                );
+              })()}
+            </div>
             <h1 style={{ fontSize: "1.5rem" }}>{product.title}</h1>
             <div className="price mb-2">{priceText}</div>
             {hasRange && !refPrice && (

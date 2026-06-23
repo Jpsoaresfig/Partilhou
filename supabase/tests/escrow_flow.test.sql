@@ -166,4 +166,42 @@ begin
   raise notice 'OK: anti-oversell (reserva no pedido) funciona.';
 end$$;
 
+-- --- 8) EXPIRACAO DE RESERVA: carrinho abandonado relista o produto. ----------
+do $$
+declare
+  v_seller uuid := gen_random_uuid();
+  v_buyer  uuid := gen_random_uuid();
+  v_prod   public.products;
+  v_order  public.orders;
+  v_status text;
+  v_fs     text;
+  v_n      integer;
+begin
+  insert into auth.users (id, email, raw_user_meta_data)
+  values
+    (v_seller, 'vendedor4@test.local', '{"full_name":"Vendedor4"}'),
+    (v_buyer,  'comprador4@test.local', '{"full_name":"Comprador4"}');
+
+  insert into public.products (seller_id, title, amount_total_cents, commission_bps, review_status, trust_score)
+  values (v_seller, 'Item carrinho', 30000, 1000, 'approved', 80)
+  returning * into v_prod;
+
+  v_order := app.create_order(v_buyer, v_prod.id, null);  -- reserva
+  select status into v_status from public.products where id = v_prod.id;
+  assert v_status = 'reservado', 'produto deveria estar reservado';
+
+  -- Simula abandono: envelhece o pedido alem do TTL.
+  update public.orders set created_at = now() - interval '2 hours' where id = v_order.id;
+
+  v_n := app.expire_stale_reservations();
+  assert v_n >= 1, 'deveria expirar ao menos 1 reserva';
+
+  select status into v_status from public.products where id = v_prod.id;
+  select funds_state into v_fs from public.orders where id = v_order.id;
+  assert v_status = 'ativo', 'produto deveria voltar a ativo apos a expiracao';
+  assert v_fs = 'estornado', 'pedido nao-pago deveria ser anulado (estornado)';
+
+  raise notice 'OK: expiracao de reserva relista o produto.';
+end$$;
+
 rollback;

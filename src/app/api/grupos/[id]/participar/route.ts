@@ -7,13 +7,15 @@
  * contadores de membros sao mantidos por trigger.
  */
 import { requireUser } from "@/lib/auth";
-import { ok, handleError } from "@/lib/http";
+import { ok, fail, handleError } from "@/lib/http";
+import { groupsEnabled } from "@/lib/flags";
 
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    if (!(await groupsEnabled())) return fail("Area de Grupos indisponivel", 404);
     const { user, supabase } = await requireUser();
     const { id } = await params;
 

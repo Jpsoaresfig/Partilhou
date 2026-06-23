@@ -4,12 +4,14 @@
  * automaticamente como admin (trigger no banco). Insert respeita a RLS.
  */
 import { requireUser } from "@/lib/auth";
-import { ok, handleError, readJson } from "@/lib/http";
+import { ok, fail, handleError, readJson } from "@/lib/http";
 import { createGroupSchema } from "@/lib/validation";
 import { slugify } from "@/lib/groups";
+import { groupsEnabled } from "@/lib/flags";
 
 export async function POST(req: Request) {
   try {
+    if (!(await groupsEnabled())) return fail("Area de Grupos indisponivel", 404);
     const { user, supabase } = await requireUser();
     const body = createGroupSchema.parse(await readJson(req));
 

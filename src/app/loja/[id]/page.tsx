@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerUser } from "@/lib/supabase/server";
 import ProductCard, { type ProductRow } from "@/components/ProductCard";
+import Reputation from "@/components/Reputation";
 import { CATEGORIES } from "@/lib/categories";
 import { UFS } from "@/lib/regions";
 
@@ -51,13 +52,15 @@ export default async function LojaPage({
 
   const isOwner = user?.id === seller.id;
 
-  // Reputacao como vendedor (publica).
-  const { data: rep } = await supabase
+  // Reputacao publica nos tres papeis (vendedor, afiliado, comprador).
+  const { data: repRows } = await supabase
     .from("profile_reputation")
-    .select("avg_score, ratings_count")
-    .eq("ratee_id", id)
-    .eq("role", "vendedor")
-    .maybeSingle();
+    .select("role, avg_score, ratings_count")
+    .eq("ratee_id", id);
+  const repByRole = new Map((repRows ?? []).map((r) => [r.role as string, r]));
+  const repVendedor = repByRole.get("vendedor") ?? null;
+  const repAfiliado = repByRole.get("afiliado") ?? null;
+  const repComprador = repByRole.get("comprador") ?? null;
 
   // Dados privados (telefone) so quando o proprio dono visita a propria loja.
   let ownPhone: string | null = null;
@@ -149,11 +152,11 @@ export default async function LojaPage({
               </div>
             )}
 
-            {rep?.ratings_count ? (
-              <div className="mt-1 small">
-                <span style={{ color: "var(--accent)" }}>★</span>{" "}
-                <strong>{Number(rep.avg_score).toFixed(1)}</strong>{" "}
-                <span className="muted">({rep.ratings_count} avaliacoes)</span>
+            {repVendedor || repAfiliado || repComprador ? (
+              <div className="rep-roles mt-1">
+                <Reputation rep={repVendedor} label="Vendedor" size="sm" />
+                {repAfiliado && <Reputation rep={repAfiliado} label="Afiliado" size="sm" />}
+                <Reputation rep={repComprador} label="Comprador" size="sm" />
               </div>
             ) : (
               <div className="mt-1 small muted">Sem avaliacoes ainda</div>

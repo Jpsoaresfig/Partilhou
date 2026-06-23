@@ -2,10 +2,52 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import ThemeToggle from "./ThemeToggle";
+import Icon, { type IconName } from "./icons";
 
-export default function Navbar({ authed, isAdmin, unread = 0 }: { authed: boolean; isAdmin?: boolean; unread?: number }) {
+/** Item do header: ícone (linha) em cima, nome embaixo (estilo Facebook). */
+function NavItem({
+  href,
+  icon,
+  label,
+  badge,
+  active,
+  onClick,
+}: {
+  href: string;
+  icon: IconName;
+  label: string;
+  badge?: number;
+  active?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <Link href={href} className={`nav-item${active ? " active" : ""}`} onClick={onClick}>
+      <span className="nav-ico">
+        <Icon name={icon} />
+        {badge && badge > 0 ? (
+          <span className="nav-badge">{badge > 99 ? "99+" : badge}</span>
+        ) : null}
+      </span>
+      <span className="nav-label">{label}</span>
+    </Link>
+  );
+}
+
+export default function Navbar({
+  authed,
+  isAdmin,
+  unread = 0,
+  showGroups = false,
+}: {
+  authed: boolean;
+  isAdmin?: boolean;
+  unread?: number;
+  showGroups?: boolean;
+}) {
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
   async function logout() {
@@ -16,6 +58,7 @@ export default function Navbar({ authed, isAdmin, unread = 0 }: { authed: boolea
   }
 
   const close = () => setOpen(false);
+  const is = (p: string) => (p === "/" ? pathname === "/" : pathname.startsWith(p));
 
   return (
     <nav className="nav">
@@ -34,32 +77,63 @@ export default function Navbar({ authed, isAdmin, unread = 0 }: { authed: boolea
         </button>
 
         <div className={`nav-links ${open ? "open" : "closed"}`}>
-          <Link href="/" onClick={close}>Explorar</Link>
-          <Link href="/grupos" onClick={close}>Grupos</Link>
+          <NavItem href="/" icon="home" label="Início" active={is("/")} onClick={close} />
+          {showGroups && (
+            <NavItem href="/grupos" icon="users" label="Grupos" active={is("/grupos")} onClick={close} />
+          )}
+
           {authed ? (
             <>
-              <Link href="/vender" onClick={close}>Vender</Link>
-              <Link href="/painel" onClick={close}>Painel</Link>
-              <Link href="/chat" onClick={close}>Conversas</Link>
-              <Link href="/carteira" onClick={close}>Carteira</Link>
-              <Link href="/notificacoes" onClick={close} className="nav-notif">
-                Notificacoes
-                {unread > 0 && <span className="nav-badge">{unread > 9 ? "9+" : unread}</span>}
-              </Link>
-              <Link href="/perfil" onClick={close}>Perfil</Link>
-              {isAdmin && <Link href="/admin" onClick={close}>Admin</Link>}
-              <button onClick={logout}>Sair</button>
+              <NavItem href="/vender" icon="dollar" label="Anunciar" active={is("/vender")} onClick={close} />
+              <NavItem href="/painel" icon="store" label="Painel" active={is("/painel")} onClick={close} />
+              <NavItem href="/carteira" icon="wallet" label="Carteira" active={is("/carteira")} onClick={close} />
+              <NavItem
+                href="/notificacoes"
+                icon="bell"
+                label="Notificações"
+                badge={unread}
+                active={is("/notificacoes")}
+                onClick={close}
+              />
+              <NavItem href="/perfil" icon="user" label="Perfil" active={is("/perfil")} onClick={close} />
+              {isAdmin && (
+                <NavItem href="/admin" icon="shield" label="Admin" active={is("/admin")} onClick={close} />
+              )}
+              <ThemeToggleSlot />
+              <button className="nav-item" onClick={logout}>
+                <span className="nav-ico">
+                  <Icon name="logout" />
+                </span>
+                <span className="nav-label">Sair</span>
+              </button>
             </>
           ) : (
             <>
-              <Link href="/login" onClick={close}>Entrar</Link>
-              <Link href="/registrar" className="btn btn-primary btn-sm" style={{ color: "#06231b" }} onClick={close}>
-                Criar conta
-              </Link>
+              <NavItem href="/login" icon="login" label="Entrar" active={is("/login")} onClick={close} />
+              <span className="nav-sell">
+                <Link href="/registrar" className="btn btn-primary btn-sm" onClick={close}>
+                  Criar conta
+                </Link>
+              </span>
+              <ThemeToggleSlot />
             </>
           )}
         </div>
       </div>
     </nav>
+  );
+}
+
+/** Mostra o sol/lua redondo no desktop e um item "Tema" no menu mobile. */
+function ThemeToggleSlot() {
+  return (
+    <>
+      <span className="theme-desktop">
+        <ThemeToggle />
+      </span>
+      <span className="theme-mobile">
+        <ThemeToggle compact />
+      </span>
+    </>
   );
 }

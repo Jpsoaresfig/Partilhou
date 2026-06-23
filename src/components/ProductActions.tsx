@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { lookupCep, formatCep, digitsOnlyCep } from "@/lib/cep";
 import {
   computeSplit,
   formatBRL,
@@ -64,6 +65,7 @@ export default function ProductActions({
   const [copied, setCopied] = useState(false);
   const [showShipping, setShowShipping] = useState(false);
   const [showPromote, setShowPromote] = useState(false);
+  const [cepStatus, setCepStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
   const [shipping, setShipping] = useState<Shipping>({
     ...EMPTY_SHIPPING,
     recipient: buyerName ?? "",
@@ -119,6 +121,37 @@ export default function ProductActions({
 
   function setField(key: keyof Shipping, value: string) {
     setShipping((s) => ({ ...s, [key]: value }));
+  }
+
+  // Digita o CEP (mascarado) e, ao completar 8 digitos, busca o endereco nos
+  // Correios (ViaCEP) e preenche rua/bairro/cidade/UF automaticamente.
+  async function onCepChange(raw: string) {
+    const masked = formatCep(raw);
+    setField("zip", masked);
+    const digits = digitsOnlyCep(raw);
+    if (digits.length !== 8) {
+      setCepStatus("idle");
+      return;
+    }
+    setCepStatus("loading");
+    try {
+      const addr = await lookupCep(digits);
+      if (!addr) {
+        setCepStatus("err");
+        return;
+      }
+      setShipping((s) => ({
+        ...s,
+        zip: masked,
+        street: addr.street || s.street,
+        district: addr.district || s.district,
+        city: addr.city || s.city,
+        state: addr.state || s.state,
+      }));
+      setCepStatus("ok");
+    } catch {
+      setCepStatus("err");
+    }
   }
 
   const shippingValid =
@@ -215,10 +248,20 @@ export default function ProductActions({
               <input
                 className="input"
                 value={shipping.zip}
-                onChange={(e) => setField("zip", e.target.value)}
+                onChange={(e) => onCepChange(e.target.value)}
                 placeholder="00000-000"
                 inputMode="numeric"
+                maxLength={9}
               />
+              {cepStatus === "loading" && (
+                <span className="cep-status loading">Buscando endereço…</span>
+              )}
+              {cepStatus === "ok" && (
+                <span className="cep-status ok">Endereço preenchido ✓</span>
+              )}
+              {cepStatus === "err" && (
+                <span className="cep-status err">CEP não encontrado. Preencha manualmente.</span>
+              )}
             </div>
             <div className="field" style={{ margin: 0, flex: 1 }}>
               <label>Rua</label>

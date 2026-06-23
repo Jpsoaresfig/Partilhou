@@ -13,6 +13,14 @@ const optionalText = <T extends z.ZodTypeAny>(schema: T) =>
     schema.optional(),
   );
 
+// Checkbox de formulario: chega como "on"/"true"/true quando marcado, ausente
+// quando desmarcado. Normalizamos para boolean e exigimos `true`.
+const requiredCheckbox = (message: string) =>
+  z.preprocess(
+    (v) => v === true || v === "true" || v === "on" || v === "1",
+    z.literal(true, { errorMap: () => ({ message }) }),
+  );
+
 export const registerSchema = z.object({
   email: z.string().trim().min(1, "Informe o e-mail").email("E-mail invalido"),
   password: z
@@ -28,6 +36,24 @@ export const registerSchema = z.object({
     z.string().trim().min(11, "CPF/CNPJ invalido").max(18, "CPF/CNPJ invalido"),
   ),
   phone: optionalText(z.string().trim().max(20, "Telefone invalido")),
+  // Aceite obrigatorio dos termos + privacidade.
+  accept_terms: requiredCheckbox("Voce precisa aceitar os Termos e a Politica de Privacidade"),
+  // Declaracao obrigatoria de maioridade (so 18+ podem vender).
+  is_adult: requiredCheckbox("E preciso ter 18 anos ou mais para criar uma conta"),
+});
+
+// Formulario "Reportar problema" (/reportar). Funciona logado ou nao.
+export const reportSchema = z.object({
+  category: z
+    .enum(["pagamento", "conta", "anuncio", "bug", "abuso", "outro"])
+    .default("outro"),
+  message: z
+    .string()
+    .trim()
+    .min(10, "Descreva o problema com ao menos 10 caracteres")
+    .max(4000, "Mensagem muito longa"),
+  email: optionalText(z.string().trim().email("E-mail invalido")),
+  url: optionalText(z.string().trim().max(300)),
 });
 
 export const loginSchema = z.object({

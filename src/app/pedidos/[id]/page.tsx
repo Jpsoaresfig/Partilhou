@@ -32,25 +32,32 @@ export default async function OrderPage({
   const myLabel =
     role === "seller" ? "Voce recebe (liquido)" : role === "affiliate" ? "Sua comissao" : "Voce pagou";
 
-  // Avaliacao: so o comprador, e so apos o pedido concluido (fundos liberados).
-  const canRate = role === "buyer" && order.funds_state === "liberado";
+  // Avaliacao 360°, apos o pedido concluido (fundos liberados):
+  //  - o comprador avalia o vendedor e (se houve) o afiliado;
+  //  - o vendedor avalia o comprador.
+  const isLiberado = order.funds_state === "liberado";
   let ratingTargets: RatingTarget[] = [];
-  if (canRate) {
+  if (isLiberado && (role === "buyer" || role === "seller")) {
     const { data: existing } = await supabase
       .from("ratings")
       .select("role, score, comment")
       .eq("order_id", order.id);
     const byRole = new Map((existing ?? []).map((r) => [r.role as string, r]));
-    ratingTargets = [
-      { role: "vendedor" as const, label: "Avaliar o vendedor" },
-      ...(order.affiliate_id
-        ? [{ role: "afiliado" as const, label: "Avaliar o afiliado" }]
-        : []),
-    ].map((t) => {
+    const base =
+      role === "buyer"
+        ? [
+            { role: "vendedor" as const, label: "Avaliar o vendedor" },
+            ...(order.affiliate_id
+              ? [{ role: "afiliado" as const, label: "Avaliar o afiliado" }]
+              : []),
+          ]
+        : [{ role: "comprador" as const, label: "Avaliar o comprador" }];
+    ratingTargets = base.map((t) => {
       const ex = byRole.get(t.role);
       return { ...t, existing: ex ? { score: ex.score, comment: ex.comment } : null };
     });
   }
+  const canRate = ratingTargets.length > 0;
 
   return (
     <main className="container mt-3 mb-3" style={{ maxWidth: 760 }}>

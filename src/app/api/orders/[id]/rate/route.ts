@@ -8,7 +8,7 @@ import { appRpc } from "@/lib/supabase/admin";
 import { ok, handleError, readJson } from "@/lib/http";
 
 const rateSchema = z.object({
-  role: z.enum(["vendedor", "afiliado"]),
+  role: z.enum(["vendedor", "afiliado", "comprador"]),
   score: z.number().int().min(1).max(5),
   comment: z.string().trim().max(1000).optional(),
 });

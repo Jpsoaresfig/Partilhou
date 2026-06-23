@@ -21,6 +21,9 @@ export async function POST(req: Request) {
           full_name: body.full_name,
           document_number: body.document_number ?? null,
           phone: body.phone ?? null,
+          // Declaracao de maioridade (gate de venda) e aceite dos termos.
+          is_adult: true,
+          terms_accepted_at: new Date().toISOString(),
         },
       },
     });

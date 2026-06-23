@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Role = "vendedor" | "afiliado";
+type Role = "vendedor" | "afiliado" | "comprador";
 
 export type RatingTarget = {
   role: Role;

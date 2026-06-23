@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient, getServerUser } from "@/lib/supabase/server";
 import { GROUP_THEMES, groupCover, groupIcon, membersLabel } from "@/lib/groups";
+import { groupsEnabled } from "@/lib/flags";
 import GroupJoinButton from "@/components/GroupJoinButton";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +33,7 @@ export default async function GruposPage({
 }: {
   searchParams: Promise<Search>;
 }) {
+  if (!(await groupsEnabled())) redirect("/");
   const { tema } = await searchParams;
 
   const supabase = await createSupabaseServerClient();

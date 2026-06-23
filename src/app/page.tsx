@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import Icon from "@/components/icons";
 import ProductCard, { type ProductRow } from "@/components/ProductCard";
 import { CATEGORIES } from "@/lib/categories";
 import { UFS } from "@/lib/regions";
@@ -75,24 +76,38 @@ export default async function Home({
 
   return (
     <main>
-      <section className="container hero">
-        <span className="badge badge-primary mb-2">Pagamento garantido por escrow</span>
-        <h1>
-          Compre, venda e <span className="gradient">indique</span> produtos usados
-        </h1>
-        <p className="lead">
-          O vendedor define a comissao, o afiliado divulga e todos recebem com
-          seguranca. A Partilhou retem o pagamento ate a entrega ser confirmada.
-        </p>
-        <div className="row" style={{ justifyContent: "center" }}>
-          <Link href="/vender" className="btn btn-primary btn-lg">
-            <span className="btn-ico" aria-hidden>🏷️</span>
-            Anunciar produto
-          </Link>
-          <Link href="/registrar" className="btn btn-ghost btn-lg">
-            <span className="btn-ico" aria-hidden>🤝</span>
-            Comecar a afiliar
-          </Link>
+      <section className="container mt-3">
+        <div className="hero-card">
+          <span className="badge mb-2">Pagamento garantido por escrow</span>
+          <h1>Compre, venda e indique produtos usados</h1>
+          <p className="lead">
+            O vendedor define a comissão, o afiliado divulga e todos recebem com
+            segurança. A Partilhou retém o pagamento até a entrega ser confirmada.
+          </p>
+          <div className="row wrap" style={{ marginTop: "1.25rem" }}>
+            <Link href="/vender" className="btn btn-primary btn-lg">
+              <Icon name="dollar" size={18} />
+              Anunciar produto
+            </Link>
+            <Link href="/registrar" className="btn btn-ghost btn-lg">
+              <Icon name="users" size={18} />
+              Começar a afiliar
+            </Link>
+          </div>
+          <div className="hero-stats">
+            <div className="hero-stat">
+              <strong>Sem mensalidade</strong>
+              <span>cobramos só na venda</span>
+            </div>
+            <div className="hero-stat">
+              <strong>Escrow</strong>
+              <span>dinheiro retido até a entrega</span>
+            </div>
+            <div className="hero-stat">
+              <strong>Afiliados</strong>
+              <span>renda divulgando anúncios</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -164,12 +179,12 @@ export default async function Home({
           </div>
           <div className="row" style={{ alignSelf: "flex-end", gap: "0.5rem" }}>
             <button type="submit" className="btn btn-primary">
-              <span className="btn-ico" aria-hidden>🔍</span>
+              <Icon name="search" size={17} />
               Filtrar
             </button>
             {hasFilter && (
               <Link href="/" className="btn btn-ghost">
-                <span className="btn-ico" aria-hidden>✕</span>
+                <Icon name="close" size={17} />
                 Limpar
               </Link>
             )}

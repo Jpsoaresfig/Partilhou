@@ -137,7 +137,34 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
             />
           </Field>
 
-          <button className="btn btn-primary btn-block" disabled={loading}>
+          {mode === "register" && (
+            <>
+              <label className={`check-field${fieldError("is_adult") ? " invalid" : ""}`}>
+                <input type="checkbox" name="is_adult" value="true" />
+                <span>
+                  Declaro que tenho <strong>18 anos ou mais</strong>. Só maiores
+                  de idade podem vender na Partilhou.
+                </span>
+              </label>
+              {fieldError("is_adult") && (
+                <span className="field-error" role="alert">{fieldError("is_adult")}</span>
+              )}
+
+              <label className={`check-field${fieldError("accept_terms") ? " invalid" : ""}`}>
+                <input type="checkbox" name="accept_terms" value="true" />
+                <span>
+                  Li e aceito os{" "}
+                  <Link href="/termos" target="_blank">Termos de Uso</Link> e a{" "}
+                  <Link href="/privacidade" target="_blank">Política de Privacidade</Link>.
+                </span>
+              </label>
+              {fieldError("accept_terms") && (
+                <span className="field-error" role="alert">{fieldError("accept_terms")}</span>
+              )}
+            </>
+          )}
+
+          <button className="btn btn-primary btn-block mt-1" disabled={loading}>
             {loading ? "Enviando..." : mode === "login" ? "Entrar" : "Criar conta"}
           </button>
         </form>

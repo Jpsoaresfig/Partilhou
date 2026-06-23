@@ -45,3 +45,10 @@ file_size_limit = "10MiB"
 
 [edge_runtime]
 enabled = true
+
+# Analytics (logflare/vector) desabilitado no local: o container `vector` exige
+# o daemon Docker exposto em tcp://localhost:2375 (Docker Desktop/Windows) e
+# entra em crash-loop sem isso, travando o `supabase start`. Nao e necessario
+# para dev (app usa apenas DB/Auth/REST/Storage).
+[analytics]
+enabled = false
